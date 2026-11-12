@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Game content lives in src/data/game.ts and progress in src/lib/progress.ts (localStorage); keep UI reading only these so an Express/Mongo API can replace them later.
