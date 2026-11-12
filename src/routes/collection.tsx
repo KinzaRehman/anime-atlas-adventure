@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { COLLECTIBLES } from "@/data/game";
 import { CharCard } from "@/components/CharCard";
 import { useProgress } from "@/lib/progress";
+import { AnimeCards } from "@/components/collection/AnimeCards";
 
 export const Route = createFileRoute("/collection")({
   head: () => ({ meta: [
@@ -21,6 +22,7 @@ function Collection() {
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {COLLECTIBLES.map((c, i) => <CharCard key={c.id} n={i + 1} c={c} unlocked={p.chars.includes(c.id)} />)}
       </div>
+      <AnimeCards />
     </div>
   );
 }

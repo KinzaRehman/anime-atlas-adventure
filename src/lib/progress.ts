@@ -4,9 +4,10 @@ import { COLLECTIBLES, BADGES, XP_PER_LEVEL, TOWN_FRIENDS, TOWN_QUESTS, type Tow
 import { MISSIONS, advanceMission, missionPeriod, type MissionState } from "@/data/missions";
 import { SHOP_ITEMS } from "@/data/shop";
 
-export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; spentXp: number; items: string[]; equippedItem: string | null; }
+export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; spentXp: number; items: string[]; equippedItem: string | null; anime: AnimeCard[]; }
+export interface AnimeCard { id: string; title: string; rating: number; description: string; rewatch: boolean; character: string; addedAt: number; }
 const KEY = "animeatlas-progress-v1";
-const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {}, spentXp: 0, items: [], equippedItem: null });
+const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {}, spentXp: 0, items: [], equippedItem: null, anime: [] });
 let state: Progress = fresh();
 let loaded = false;
 const subs = new Set<() => void>();
@@ -112,3 +113,11 @@ export function townQuestStage(s: Progress, id: TownFriend): "locked" | "find" |
   if (!s.done.includes(TOWN_QUESTS[id].location)) return "activity";
   return s.done.includes(`${id}-turnin`) ? "done" : "return";
 }
+
+export function addAnimeCard(c: Omit<AnimeCard, "id" | "addedAt">): boolean {
+  const title = c.title.trim().slice(0, 80);
+  if (!title || c.rating < 1 || c.rating > 5) return false;
+  update((s) => ({ anime: [{ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, addedAt: Date.now(), title, rating: Math.round(c.rating), description: c.description.trim().slice(0, 240), rewatch: c.rewatch, character: c.character.trim().slice(0, 60) }, ...(s.anime ?? [])] }));
+  return true;
+}
+export function removeAnimeCard(id: string) { update((s) => ({ anime: (s.anime ?? []).filter((a) => a.id !== id) })); }
