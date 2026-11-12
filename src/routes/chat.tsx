@@ -41,7 +41,7 @@ function Conversation({ who }: { who: "mochi" | "sora" }) {
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView({ block: "nearest" }); }, [log]);
   const choose = (o: { label: string; next: string }) => {
-    setLog((l) => [...l, { from: "me", text: o.label }, { from: "them", text: c.nodes[o.next].text }]);
+    setLog((l) => [...l, { from: "me", text: o.label }, { from: "them", text: c.nodes[o.next]!.text }]);
     setNode(o.next);
     if (!p.chatted.includes(who)) addXp(25, (s) => ({ chatted: [...s.chatted, who] }));
   };
@@ -57,7 +57,7 @@ function Conversation({ who }: { who: "mochi" | "sora" }) {
         <div ref={end} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {c.nodes[node].options.map((o) => <button key={o.label} className="btn-soft" onClick={() => choose(o)}>{o.label}</button>)}
+        {c.nodes[node]!.options.map((o) => <button key={o.label} className="btn-soft" onClick={() => choose(o)}>{o.label}</button>)}
       </div>
     </section>
   );

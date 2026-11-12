@@ -55,7 +55,7 @@ export const DISCUSSIONS = [
 export const POLL = { q: "Which genre should the next town festival celebrate?", options: ["Slice of Life", "Sports", "Mecha", "Mystery"], base: [34, 21, 15, 18] };
 
 export type ChatNode = { text: string; options: { label: string; next: string }[] };
-export const CHAT: Record<string, { name: string; role: string; nodes: Record<string, ChatNode> }> = {
+export const CHAT: Record<"mochi" | "sora", { name: string; role: string; nodes: { start: ChatNode; [k: string]: ChatNode } }> = {
   mochi: { name: "Mochi", role: "Manga Librarian", nodes: {
     start: { text: "Hi hi! I'm Mochi 📚 What should we talk about today?", options: [{ label: "Recommend me something", next: "rec" }, { label: "Fun manga fact!", next: "fact" }, { label: "What do you like to draw?", next: "draw" }] },
     rec: { text: "Cozy or exciting? I always have a stack ready!", options: [{ label: "Cozy please", next: "cozy" }, { label: "Exciting!", next: "exciting" }] },

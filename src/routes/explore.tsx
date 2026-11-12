@@ -90,7 +90,7 @@ function Trivia() {
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const over = i >= TRIVIA.length;
-  const answer = (k: number) => { if (picked !== null) return; setPicked(k); if (k === TRIVIA[i].c) setScore((s) => s + 1); };
+  const answer = (k: number) => { if (picked !== null) return; setPicked(k); if (k === TRIVIA[i]!.c) setScore((s) => s + 1); };
   const next = () => {
     const n = i + 1; setI(n); setPicked(null);
     if (n >= TRIVIA.length) addXp(score * 10, (s) => ({ done: [...new Set([...s.done, ...(score >= 4 ? ["trivia4"] : []), ...(score === 5 ? ["trivia5"] : [])])] }));
@@ -99,7 +99,7 @@ function Trivia() {
     <div className="text-center"><p className="animate-pop text-5xl">{score >= 4 ? "🏆" : "🎮"}</p><p className="font-display text-2xl font-bold">{score} / {TRIVIA.length}</p><p className="text-muted-foreground">+{score * 10} XP {score < 4 && "— score 4+ to unlock a rare friend!"}</p>
       <button className="btn-game mt-3" onClick={() => { setI(0); setScore(0); }}>Play again</button></div>
   );
-  const t = TRIVIA[i];
+  const t = TRIVIA[i]!;
   return (
     <div>
       <p className="text-sm font-bold text-muted-foreground">Question {i + 1} of {TRIVIA.length} · Score {score}</p>

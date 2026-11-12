@@ -27,8 +27,8 @@ function Fandoms() {
           {POLL.options.map((o, i) => (
             <button key={o} onClick={() => p.vote === null && addXp(20, () => ({ vote: i }))} aria-pressed={p.vote === i} disabled={p.vote !== null && p.vote !== i}
               className="relative block min-h-12 w-full overflow-hidden rounded-2xl border-[3px] border-border bg-muted text-left font-bold">
-              {p.vote !== null && <span className="absolute inset-y-0 left-0 bg-lavender transition-all" style={{ width: `${(votes[i] / total) * 100}%` }} aria-hidden />}
-              <span className="relative flex justify-between px-4 py-3"><span>{o} {p.vote === i && "✓"}</span>{p.vote !== null && <span>{Math.round((votes[i] / total) * 100)}%</span>}</span>
+              {p.vote !== null && <span className="absolute inset-y-0 left-0 bg-lavender transition-all" style={{ width: `${(votes[i]! / total) * 100}%` }} aria-hidden />}
+              <span className="relative flex justify-between px-4 py-3"><span>{o} {p.vote === i && "✓"}</span>{p.vote !== null && <span>{Math.round((votes[i]! / total) * 100)}%</span>}</span>
             </button>
           ))}
         </div>
