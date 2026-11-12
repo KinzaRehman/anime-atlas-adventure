@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import town from "@/assets/town-map.jpg";
 import mochi from "@/assets/char-mochi.jpg";
 import sora from "@/assets/char-sora.jpg";
+import { COLLECTIBLES } from "@/data/game";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -26,7 +27,7 @@ function Welcome() {
         <div className="card-game animate-rise px-6 py-8">
           <p className="text-sm font-extrabold uppercase tracking-widest text-primary">Welcome, traveler</p>
           <h1 className="mt-1 text-5xl font-bold">AnimeAtlas</h1>
-          <p className="mt-3 text-lg text-muted-foreground">A cozy town full of manga, trivia, café friends and fellow fans. Explore, earn XP and collect 8 original characters.</p>
+          <p className="mt-3 text-lg text-muted-foreground">A cozy town full of manga, trivia, café friends and fellow fans. Explore, earn XP and collect {COLLECTIBLES.length} original characters.</p>
           <Link to="/explore" className="btn-game mt-6 text-lg">Start Exploring ✨</Link>
         </div>
       </div>

@@ -35,3 +35,6 @@ use the editor.
 - AI model calls go through @lovable.dev/ai-gateway inside createServerFn handlers in src/lib/*.functions.ts; keeps keys server-side.
 - Community data (posts, comments, likes, polls) is read/written from the browser via the generated client in src/lib/community.ts, guarded by RLS; guests read, signed-in users write their own rows.
 - Character chat history lives in the chat_messages table per user+character; sendChat (src/lib/chat.functions.ts) saves both turns server-side so history and replies stay consistent.
+- Recurring missions use UTC period keys and ordered activity events in the progress store; reward claims are guarded against duplicates so replaying activities cannot repeatedly claim the same mission.
+- Community reports and notification reads are caller-scoped by RLS; moderation uses a protected role table and a role-checking database function so clients cannot grant themselves moderation powers.
+- Removed community items are filtered in public feeds and protected by restrictive read policies with owner/moderator access retained for review.
