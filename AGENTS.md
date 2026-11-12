@@ -33,6 +33,7 @@ use the editor.
 - Game world uses Phaser (src/game, lazy-loaded in GameCanvas); React HUD talks to it only via src/game/bus.ts. Dev builds expose window.__scene for scripted checks (teleport via __scene.player.setPosition).
 - Town expansion quests use TOWN_QUESTS content and QuestChallenge with townQuestStage; completion and turn-in remain separate so collectible cards require the full encounter loop.
 - Use TOWN_FRIENDS and each quest's location for town progression and collectible rules so added characters share the same encounter gates.
+- Town map entries derive from game content and existing quest-stage helpers; map selection is read-only so activity completion never bypasses character turn-in.
 - XP shop purchases use device-local progress with spentXp separate from lifetime xp to preserve levels; cosmetic ownership and equipping are validated atomically in the progress store.
 - AI model calls go through @lovable.dev/ai-gateway inside createServerFn handlers in src/lib/*.functions.ts; keeps keys server-side.
 - Community data (posts, comments, likes, polls) is read/written from the browser via the generated client in src/lib/community.ts, guarded by RLS; guests read, signed-in users write their own rows.

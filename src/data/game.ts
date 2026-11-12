@@ -179,3 +179,9 @@ export const TOWN_QUESTS = {
     ],
   },
 } satisfies Record<TownFriend, { location: string; building: string; title: string; objective: Record<string, string>; lines: Record<string, string[]>; questions: QuestQuestion[] }>;
+
+export const TOWN_MAP_QUESTS = [
+  { character: "mochi", location: "library", building: "Manga Library", title: "Mochi's Genre Shelves" },
+  { character: "sora", location: "cafe", building: "Yasuragi Café", title: "Sora's Café Quiz" },
+  ...TOWN_FRIENDS.map((character) => ({ character, ...TOWN_QUESTS[character] })),
+];

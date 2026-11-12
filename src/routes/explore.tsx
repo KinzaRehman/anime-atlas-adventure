@@ -4,6 +4,7 @@ import { BookOpen, Hand, MessageCircle } from "lucide-react";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { Joystick } from "@/components/game/Joystick";
 import { Minimap } from "@/components/game/Minimap";
+import { TownMap } from "@/components/game/TownMap";
 import { Sheet } from "@/components/game/Sheet";
 import { Dialogue } from "@/components/game/Dialogue";
 import { GenreMatch } from "@/components/game/GenreMatch";
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/explore")({
 
 const OBJECTIVE = { find: "Find someone by the fountain", library: "Sort the shelves at the Manga Library", return: "Return to Mochi" };
 const SORA_OBJ = { find: "Say hello to Sora outside the café", library: "Win Sora's Café Quiz", return: "Return to Sora", done: "", locked: "" };
-type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | TownFriend | "arcade" | "plaza" | "workshop" | "studio" | "garden" | "paper" | `unlock-${TownFriend}` | "missions";
+type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | TownFriend | "arcade" | "plaza" | "workshop" | "studio" | "garden" | "paper" | `unlock-${TownFriend}` | "missions" | "map";
 
 function Explore() {
   const p = useProgress();
@@ -126,11 +127,12 @@ function Explore() {
           <p className="mt-3 border-t border-ivory/10 pt-2 text-xs uppercase tracking-[0.16em] text-ivory/50">Objective</p>
           <p className="text-sm font-semibold" aria-live="polite">{objective}</p>
         </div>
-        <div className="pointer-events-auto"><Minimap met={stage !== "find"} soraOpen={sStage === "find" || sStage === "return"} tetsuOpen={tStage === "find" || tStage === "return"} yuzuOpen={yStage === "find" || yStage === "return"} /></div>
+        <Button variant="ghost" aria-label="Open town map" title="Town map & quest progress" onClick={() => setOverlay("map")} className="pointer-events-auto h-auto rounded-2xl p-0"><Minimap met={stage !== "find"} soraOpen={sStage === "find" || sStage === "return"} tetsuOpen={tStage === "find" || tStage === "return"} yuzuOpen={yStage === "find" || yStage === "return"} /></Button>
       </div>
 
       <Button variant="ghost" title="Daily and weekly missions" aria-label="Open missions" onClick={() => setOverlay("missions")} className="glass absolute right-3 top-40 h-12 w-12 rounded-full"><Award className="h-5 w-5" /></Button>
       {overlay === "missions" && <Sheet kicker="Town challenges" title="Daily & weekly missions" onClose={() => setOverlay(null)}><Missions /></Sheet>}
+      {overlay === "map" && <TownMap onClose={() => setOverlay(null)} />}
       {/* Controls */}
       <div className="pointer-events-none absolute inset-x-0 bottom-24 flex items-end justify-between px-5 md:bottom-8">
         <div className="pointer-events-auto md:hidden"><Joystick /></div>
