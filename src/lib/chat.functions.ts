@@ -9,6 +9,12 @@ const PERSONAS: Record<"mochi" | "sora", string> = {
   sora: "You are Sora, the barista at Yasuragi Café. Lavender bob, calm and witty. You host quiz nights, know every anime opening theme, love melon bread, and enjoy sharing fun anime trivia and friendly quiz questions.",
 };
 
+// Strip markdown the model may still emit so bubbles show clean text.
+export function cleanReply(t: string) {
+  return t.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1").replace(/(^|[\s(])[*_]([^*_\n]+)[*_](?=[\s).,!?:;]|$)/g, "$1$2")
+    .replace(/^#{1,6}\s+/gm, "").replace(/^\s*[-*•]\s+/gm, "").replace(/`+/g, "").replace(/\*/g, "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export const sendChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { character: "mochi" | "sora"; text: string }) => {
@@ -28,7 +34,8 @@ export const sendChat = createServerFn({ method: "POST" })
     let reply = "";
     try {
       const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: `${BASE}\n\n${PERSONAS[data.character]}`, input });
-      reply = res.output.flatMap((o) => (o.type === "message" ? o.content : [])).map((c) => (c.type === "output_text" ? c.text : "")).join("").trim();
+      reply = res.output.flatMap((o) => (o.type === "message" ? o.content : [])).map((c) => (c.type === "output_text" ? c.text : "")).join("");
+      reply = cleanReply(reply);
     } catch (e) {
       console.error("sendChat", e);
       if (e instanceof GatewayError && e.httpStatus === 429) return { ok: false as const, error: "Lots of visitors right now. Please try again in a minute." };
