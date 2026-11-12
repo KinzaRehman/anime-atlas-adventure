@@ -1,4 +1,3 @@
-import { avatarDataUrl, DEFAULT_AVATAR, isSparkly } from "@/data/avatar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, Hand, MessageCircle } from "lucide-react";
@@ -54,7 +53,7 @@ function Explore() {
   useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); scene.current?.setMarker("ren", rStage === "find" || rStage === "return"); scene.current?.setMarker("hana", hStage === "find" || hStage === "return"); }, [stage, sStage, tStage, yStage, rStage, hStage, ready]);
   useEffect(() => { for (const id of ["kaito", "nami"] as const) { const q = townQuestStage(p, id); scene.current?.setMarker(id, q === "find" || q === "return"); } }, [p, ready]);
 
-  useEffect(() => { if (ready) { const av = { ...DEFAULT_AVATAR, ...p.avatar }; scene.current?.setAvatar(avatarDataUrl(av), isSparkly(av)); } }, [p.avatar, ready]);
+  // Town uses the original anime player artwork so the explorer matches the hand-drawn world.
 
   const interact = useCallback(() => {
     if (!near || overlay) return;
