@@ -1,3 +1,4 @@
+import { avatarDataUrl, DEFAULT_AVATAR } from "@/data/avatar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, Hand, MessageCircle } from "lucide-react";
@@ -52,6 +53,8 @@ function Explore() {
   useEffect(() => { bus.paused = overlay !== null; document.body.toggleAttribute("data-game-overlay", overlay !== null); return () => { bus.paused = false; document.body.removeAttribute("data-game-overlay"); }; }, [overlay]);
   useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); scene.current?.setMarker("ren", rStage === "find" || rStage === "return"); scene.current?.setMarker("hana", hStage === "find" || hStage === "return"); }, [stage, sStage, tStage, yStage, rStage, hStage, ready]);
   useEffect(() => { for (const id of ["kaito", "nami"] as const) { const q = townQuestStage(p, id); scene.current?.setMarker(id, q === "find" || q === "return"); } }, [p, ready]);
+
+  useEffect(() => { if (ready) scene.current?.setAvatar(avatarDataUrl({ ...DEFAULT_AVATAR, ...p.avatar })); }, [p.avatar, ready]);
 
   const interact = useCallback(() => {
     if (!near || overlay) return;

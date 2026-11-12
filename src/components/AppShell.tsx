@@ -1,10 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { BookOpen, Compass, Layers, MessageCircle, UsersRound, UserRound } from "lucide-react";
+import { BookOpen, Compass, Layers, MessageCircle, UsersRound, UserRound, Shirt } from "lucide-react";
 import { level, popUnlock, useProgress, useUnlock } from "@/lib/progress";
 
 const NAV = [
   { to: "/explore", label: "Explore", Icon: Compass },
+  { to: "/avatar", label: "Avatar", Icon: Shirt },
   { to: "/collection", label: "Collection", Icon: Layers },
   { to: "/chat", label: "Chat", Icon: MessageCircle },
   { to: "/recommend", label: "Picks", Icon: BookOpen },

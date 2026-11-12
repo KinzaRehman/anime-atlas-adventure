@@ -3,11 +3,12 @@ import { useSyncExternalStore } from "react";
 import { COLLECTIBLES, BADGES, XP_PER_LEVEL, TOWN_FRIENDS, TOWN_QUESTS, type TownFriend } from "@/data/game";
 import { MISSIONS, advanceMission, missionPeriod, type MissionState } from "@/data/missions";
 import { SHOP_ITEMS } from "@/data/shop";
+import { AVATAR_OPTIONS, DEFAULT_AVATAR, type AvatarConfig } from "@/data/avatar";
 
-export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; spentXp: number; items: string[]; equippedItem: string | null; anime: AnimeCard[]; }
+export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; spentXp: number; items: string[]; equippedItem: string | null; anime: AnimeCard[]; avatar: AvatarConfig; wardrobe: string[]; }
 export interface AnimeCard { id: string; title: string; rating: number; description: string; rewatch: boolean; character: string; addedAt: number; }
 const KEY = "animeatlas-progress-v1";
-const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {}, spentXp: 0, items: [], equippedItem: null, anime: [] });
+const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {}, spentXp: 0, items: [], equippedItem: null, anime: [], avatar: DEFAULT_AVATAR, wardrobe: [] });
 let state: Progress = fresh();
 let loaded = false;
 const subs = new Set<() => void>();
@@ -121,3 +122,22 @@ export function addAnimeCard(c: Omit<AnimeCard, "id" | "addedAt">): boolean {
   return true;
 }
 export function removeAnimeCard(id: string) { update((s) => ({ anime: (s.anime ?? []).filter((a) => a.id !== id) })); }
+
+export const ownsAvatarOption = (s: Progress, id: string) => { const opt = AVATAR_OPTIONS.find((x) => x.id === id); return !!opt && (opt.price === 0 || (s.wardrobe ?? []).includes(id)); };
+/** Equip an owned (or free) avatar option. */
+export function setAvatarPart(id: string): boolean {
+  const opt = AVATAR_OPTIONS.find((x) => x.id === id);
+  if (!opt || !ownsAvatarOption(state, id)) return false;
+  update((s) => ({ avatar: { ...DEFAULT_AVATAR, ...s.avatar, [opt.slot]: id } }));
+  return true;
+}
+/** Buy a paid avatar option with available XP and wear it straight away. */
+export function buyAvatarItem(id: string): "bought" | "owned" | "insufficient" | "unknown" {
+  load();
+  const opt = AVATAR_OPTIONS.find((x) => x.id === id);
+  if (!opt) return "unknown";
+  if (ownsAvatarOption(state, id)) return "owned";
+  if (availableXp(state) < opt.price) return "insufficient";
+  update((s) => ({ spentXp: s.spentXp + opt.price, wardrobe: [...(s.wardrobe ?? []), id], avatar: { ...DEFAULT_AVATAR, ...s.avatar, [opt.slot]: id } }));
+  return "bought";
+}

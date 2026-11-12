@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AvatarRouteImport } from './routes/avatar'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -27,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvatarRoute = AvatarRouteImport.update({
+  id: '/avatar',
+  path: '/avatar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -68,6 +74,7 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/chat': typeof ChatRoute
   '/collection': typeof CollectionRoute
   '/explore': typeof ExploreRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/chat': typeof ChatRoute
   '/collection': typeof CollectionRoute
   '/explore': typeof ExploreRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/avatar': typeof AvatarRoute
   '/chat': typeof ChatRoute
   '/collection': typeof CollectionRoute
   '/explore': typeof ExploreRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/avatar'
     | '/chat'
     | '/collection'
     | '/explore'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/avatar'
     | '/chat'
     | '/collection'
     | '/explore'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/avatar'
     | '/chat'
     | '/collection'
     | '/explore'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  AvatarRoute: typeof AvatarRoute
   ChatRoute: typeof ChatRoute
   CollectionRoute: typeof CollectionRoute
   ExploreRoute: typeof ExploreRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avatar': {
+      id: '/avatar'
+      path: '/avatar'
+      fullPath: '/avatar'
+      preLoaderRoute: typeof AvatarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  AvatarRoute: AvatarRoute,
   ChatRoute: ChatRoute,
   CollectionRoute: CollectionRoute,
   ExploreRoute: ExploreRoute,

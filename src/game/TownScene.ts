@@ -55,6 +55,14 @@ export class TownScene extends Phaser.Scene {
     this.load.image("garden", gardenImg); this.load.image("paper", paperImg);
   }
 
+  private avatarN = 0;
+  setAvatar(url: string) {
+    const key = `avatar-${++this.avatarN}`;
+    const img = new Image();
+    img.onload = () => { if (!this.sys?.isActive()) return; this.textures.addImage(key, img); this.player?.setTexture(key).setDisplaySize(62, 168); };
+    img.src = url;
+  }
+
   create() {
     this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.add.image(0, 0, "ground").setOrigin(0).setDepth(-10);
