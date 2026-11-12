@@ -3,8 +3,10 @@ import ground from "@/assets/world/ground.webp";
 import libraryImg from "@/assets/world/library.webp";
 import playerImg from "@/assets/world/player.webp";
 import mochiImg from "@/assets/world/mochi.webp";
+import cafeImg from "@/assets/world/cafe.webp";
+import soraImg from "@/assets/world/sora.webp";
 import { bus } from "./bus";
-import { BLOCKERS, INTERACT_RADIUS, LIBRARY, MOCHI, SPAWN, WORLD } from "./world";
+import { BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, SORA, SPAWN, WORLD } from "./world";
 
 const SPEED = 260; // px/s
 const ACCEL = 12;  // velocity smoothing
@@ -13,7 +15,7 @@ export class TownScene extends Phaser.Scene {
   player!: Phaser.GameObjects.Image;
   private shadow!: Phaser.GameObjects.Ellipse;
   private mochi!: Phaser.GameObjects.Image;
-  private marker!: Phaser.GameObjects.Container;
+  private markers: Record<"mochi" | "sora", Phaser.GameObjects.Container | undefined> = { mochi: undefined, sora: undefined };
   private vel = new Phaser.Math.Vector2();
   private keys!: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
   private walkT = 0;
@@ -28,6 +30,8 @@ export class TownScene extends Phaser.Scene {
     this.load.image("library", libraryImg);
     this.load.image("player", playerImg);
     this.load.image("mochi", mochiImg);
+    this.load.image("cafe", cafeImg);
+    this.load.image("sora", soraImg);
   }
 
   create() {
@@ -45,7 +49,16 @@ export class TownScene extends Phaser.Scene {
     this.mochi = this.add.image(MOCHI.x, MOCHI.y, "mochi").setOrigin(0.5, 1).setDisplaySize(64, 187).setDepth(MOCHI.y);
     this.add.ellipse(MOCHI.x, MOCHI.y - 4, 56, 16, 0x24212a, 0.25).setDepth(MOCHI.y - 1);
     if (!this.reduced) this.tweens.add({ targets: this.mochi, y: MOCHI.y - 4, duration: 900, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.marker = this.makeMarker(MOCHI.x, MOCHI.y - 210);
+    this.markers.mochi = this.makeMarker(MOCHI.x, MOCHI.y - 210);
+
+    const cafe = this.add.image(CAFE.x, CAFE.y + 140, "cafe").setOrigin(0.5, 1);
+    cafe.setScale(CAFE.w / cafe.width).setDepth(CAFE.y + 140);
+    const cglow = this.add.circle(CAFE.door.x, CAFE.door.y, 70, 0xffd27a, 0.22).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
+    if (!this.reduced) this.tweens.add({ targets: cglow, alpha: 0.06, duration: 1700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    const sora = this.add.image(SORA.x, SORA.y, "sora").setOrigin(0.5, 1).setDisplaySize(54, 190).setDepth(SORA.y);
+    this.add.ellipse(SORA.x, SORA.y - 4, 52, 15, 0x24212a, 0.25).setDepth(SORA.y - 1);
+    if (!this.reduced) this.tweens.add({ targets: sora, y: SORA.y - 3, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.markers.sora = this.makeMarker(SORA.x, SORA.y - 215).setVisible(false);
 
     this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
     this.player = this.add.image(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
@@ -79,7 +92,7 @@ export class TownScene extends Phaser.Scene {
     return c;
   }
 
-  setMarker(visible: boolean) { this.marker?.setVisible(visible); }
+  setMarker(id: "mochi" | "sora", visible: boolean) { this.markers[id]?.setVisible(visible); }
 
   celebrate(x: number, y: number) {
     if (this.reduced) return;
@@ -90,7 +103,7 @@ export class TownScene extends Phaser.Scene {
 
   private blocked(x: number, y: number) {
     if (x < 30 || y < 120 || x > WORLD.w - 30 || y > WORLD.h - 10) return true;
-    if (Math.hypot(x - MOCHI.x, (y - MOCHI.y) * 2) < 40) return true;
+    if (Math.hypot(x - MOCHI.x, (y - MOCHI.y) * 2) < 40 || Math.hypot(x - SORA.x, (y - SORA.y) * 2) < 40) return true;
     return BLOCKERS.some(([bx, by, bw, bh]) => x > bx && x < bx + bw && y > by && y < by + bh);
   }
 
@@ -117,12 +130,16 @@ export class TownScene extends Phaser.Scene {
     p.setDepth(p.y); this.shadow.setPosition(p.x, p.y - 3).setDepth(p.y - 1);
 
     // proximity
-    const dM = Math.hypot(p.x - MOCHI.x, p.y - MOCHI.y), dL = Math.hypot(p.x - LIBRARY.door.x, p.y - LIBRARY.door.y);
-    const near = dM < INTERACT_RADIUS ? "mochi" : dL < INTERACT_RADIUS ? "library" : "";
-    if (near !== this.lastNear) {
-      this.lastNear = near;
-      bus.emit("near", near === "mochi" ? { id: "mochi", label: "Talk to Mochi" } : near === "library" ? { id: "library", label: "Enter Manga Library" } : null);
-    }
+    const spots = [
+      { id: "mochi", label: "Talk to Mochi", x: MOCHI.x, y: MOCHI.y },
+      { id: "library", label: "Enter Manga Library", x: LIBRARY.door.x, y: LIBRARY.door.y },
+      { id: "sora", label: "Talk to Sora", x: SORA.x, y: SORA.y },
+      { id: "cafe", label: "Enter Yasuragi Café", x: CAFE.door.x, y: CAFE.door.y },
+    ] as const;
+    let best: (typeof spots)[number] | null = null, bd = INTERACT_RADIUS;
+    for (const sp of spots) { const d = Math.hypot(p.x - sp.x, p.y - sp.y); if (d < bd) { bd = d; best = sp; } }
+    const near = best?.id ?? "";
+    if (near !== this.lastNear) { this.lastNear = near; bus.emit("near", best ? { id: best.id, label: best.label } : null); }
     if ((this.posTick += dms) > 100) { this.posTick = 0; bus.emit("pos", { x: p.x, y: p.y }); }
   }
 }

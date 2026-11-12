@@ -20,7 +20,8 @@ function rules(s: Progress): { badges: string[]; chars: string[] } {
   if (s.visited.length >= 1) b.push("first-steps");
   if (s.done.includes("library")) b.push("bookworm");
   if (s.chatted.length >= 2) b.push("friendly");
-  if (s.done.includes("trivia5")) b.push("trivia-star");
+  if (s.done.includes("trivia5") || s.done.includes("cafe")) b.push("trivia-star");
+  if (s.done.includes("sora-turnin")) c.push("sora");
   if (s.vote !== null) b.push("voice");
   if (s.done.includes("mochi-turnin")) { c.push("mochi"); b.push("explorer"); }
   return { badges: b, chars: c };
@@ -57,3 +58,6 @@ export const _testing = { rules, fresh };
 export type QuestStage = "find" | "library" | "return" | "done";
 export const questStage = (s: Progress): QuestStage =>
   s.done.includes("mochi-turnin") ? "done" : s.done.includes("library") ? (s.done.includes("mochi-met") ? "return" : "find") : s.done.includes("mochi-met") ? "library" : "find";
+
+export const soraStage = (s: Progress): QuestStage | "locked" =>
+  !s.done.includes("mochi-turnin") ? "locked" : s.done.includes("sora-turnin") ? "done" : !s.done.includes("sora-met") ? "find" : s.done.includes("cafe") ? "return" : "library";

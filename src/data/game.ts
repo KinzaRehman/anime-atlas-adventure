@@ -18,7 +18,10 @@ export const COLLECTIBLES: Character[] = [
     how: "Find Mochi by the fountain and help her at the library",
     bio: "Mochi has read every volume on the library's shelves at least twice. She runs the Sunday sketch club and believes every reader deserves a story that feels like home.",
     likes: ["Slice-of-life manga", "Strawberry milk", "Drawing tiny buildings"] },
-  { id: "sora", name: "Sora", title: "Café Barista", role: "Arrives with the Café district", emoji: "", rarity: "common", hue: "lavender", how: "Arrives with the Café district", bio: "", likes: [] },
+  { id: "sora", name: "Sora", title: "Café Barista", role: "Barista at Yasuragi Café", emoji: "", rarity: "common", hue: "lavender",
+    how: "Meet Sora outside the café and win her Café Quiz",
+    bio: "Sora knows every regular's order and every anime opening by heart. She hosts quiz nights at the café and says a good question is better than a good latte (almost).",
+    likes: ["Opening theme songs", "Melon bread", "Quiz nights"] },
   { id: "tetsu", name: "Tetsu", title: "Quiz Ace", role: "Arrives with the Arcade district", emoji: "", rarity: "rare", hue: "sage", how: "Arrives with the Arcade district", bio: "", likes: [] },
   { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Arrives with the Plaza district", emoji: "", rarity: "legendary", hue: "peach", how: "Arrives with the Plaza district", bio: "", likes: [] },
 ];
@@ -29,6 +32,19 @@ export const MOCHI_LINES = {
   thanks: ["You sorted every shelf? That's amazing, thank you!", "Here, take my librarian card. Now we're officially friends."],
   after: ["Thanks again for the help! More friends will arrive as the town grows."],
 };
+export const SORA_LINES = {
+  locked: ["Hi there! Mochi was looking for someone new. Help her first, then come say hi!"],
+  intro: ["Welcome to Yasuragi Café! I'm Sora, the barista.", "Tonight is quiz night, but my quiz partner is late…", "Step inside and answer my Café Quiz. Get them all right and I'll have a surprise for you!"],
+  waiting: ["The quiz cards are waiting on the counter inside. You've got this!"],
+  thanks: ["A perfect quiz! You really know your anime.", "Here's my barista card. Come by for quiz night anytime!"],
+  after: ["The café is always open for friends. More of the town opens soon!"],
+};
+export const CAFE_QUIZ = [
+  { q: "What does 'shōnen' manga typically target?", a: ["Young boys", "Cooking fans", "Retirees"], c: 0 },
+  { q: "Manga in Japan is traditionally read…", a: ["Left to right", "Right to left", "Bottom to top"], c: 1 },
+  { q: "A 'sensei' usually means…", a: ["Rival", "Snack", "Teacher"], c: 2 },
+  { q: "A story's big emotional season ending is called the…", a: ["Finale", "Prologue", "Filler"], c: 0 },
+];
 export const BADGES: Badge[] = [
   { id: "first-steps", name: "First Steps", emoji: "👣", how: "Start exploring" },
   { id: "bookworm", name: "Bookworm", emoji: "📖", how: "Complete the library match" },
