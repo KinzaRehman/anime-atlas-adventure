@@ -66,7 +66,7 @@ export function avatarSvg(a: AvatarConfig): string {
   else if (a.shoes === "high-tops") parts.push(`<rect x="33" y="246" width="16" height="16" rx="4" fill="${s1}"/><rect x="51" y="246" width="16" height="16" rx="4" fill="${s1}"/>`);
   else parts.push(`<rect x="32" y="252" width="18" height="10" rx="5" fill="${s1}"/><rect x="50" y="252" width="18" height="10" rx="5" fill="${s1}"/>`);
   parts.push(`<rect x="31" y="261" width="20" height="5" rx="2" fill="${s2}"/><rect x="49" y="261" width="20" height="5" rx="2" fill="${s2}"/>`);
-  if (a.shoes === "sparkle-sneakers" || a.shoes === "star-slipons") parts.push([[38, 256], [58, 256], [44, 259]].map(([x, y], i) => star(x, y, 2.6, "#fff", i * 0.5)).join(""));
+  if (a.shoes === "sparkle-sneakers" || a.shoes === "star-slipons") parts.push(([[38, 256], [58, 256], [44, 259]] as const).map(([x, y], i) => star(x, y, 2.6, "#fff", i * 0.5)).join(""));
   if (a.shoes === "star-slipons") parts.push(star(40, 255, 3.4, s2, 0.2) + star(60, 255, 3.4, s2, 0.9));
   // bottom garment
   if (a.outfit === "yukata") parts.push(`<path d="M30 180 L70 180 L72 246 L28 246 Z" fill="${top}"/><path d="M50 180 L52 246" stroke="${trim}" stroke-width="2"/>`);
@@ -79,7 +79,7 @@ export function avatarSvg(a: AvatarConfig): string {
   if (a.outfit === "hoodie") parts.push(`<path d="M36 122 Q50 134 64 122" stroke="${trim}" stroke-width="3" fill="none"/><rect x="38" y="156" width="24" height="12" rx="3" fill="${bottom}" opacity=".25"/>`);
   if (a.outfit === "sparkle-hoodie" || a.outfit === "star-hoodie") {
     parts.push(`<path d="M30 124 Q50 104 70 124 Q50 132 30 124 Z" fill="${top}" opacity=".85"/><path d="M42 126 L41 142 M58 126 L59 142" stroke="${trim}" stroke-width="2" stroke-linecap="round"/><rect x="36" y="156" width="28" height="14" rx="4" fill="#fff" opacity=".25"/>`);
-    parts.push([[38, 146, 4], [62, 136, 3.4], [56, 172, 3], [26, 150, 2.6], [74, 162, 2.6], [46, 164, 2.2]].map(([x, y, r], i) => star(x, y, r, trim, i * 0.3)).join(""));
+    parts.push(([[38, 146, 4], [62, 136, 3.4], [56, 172, 3], [26, 150, 2.6], [74, 162, 2.6], [46, 164, 2.2]] as const).map(([x, y, r], i) => star(x, y, r, trim, i * 0.3)).join(""));
     if (a.outfit === "star-hoodie") parts.push(`<path d="M50 142 l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6-4.5-4 6-1z" fill="${trim}"/>`);
   }
   if (a.outfit === "cardigan") parts.push(`<rect x="44" y="120" width="12" height="62" fill="${trim}"/><circle cx="50" cy="140" r="1.6" fill="${bottom}"/><circle cx="50" cy="152" r="1.6" fill="${bottom}"/><circle cx="50" cy="164" r="1.6" fill="${bottom}"/>`);
