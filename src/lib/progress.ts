@@ -50,6 +50,16 @@ export function update(fn: (s: Progress) => Partial<Progress>) {
   emit();
 }
 export const addXp = (n: number, extra: (s: Progress) => Partial<Progress> = () => ({})) => update((s) => ({ ...extra(s), xp: s.xp + n }));
+export function rewardFirstChat(character: "mochi" | "sora", successfulReply: boolean): number {
+  if (!successfulReply) return 0;
+  let earned = 0;
+  update((s) => {
+    if (s.chatted.includes(character)) return {};
+    earned = 25;
+    return { xp: s.xp + earned, chatted: [...s.chatted, character] };
+  });
+  return earned;
+}
 export function recordMission(event: string) {
   update((s) => ({ missions: Object.fromEntries(MISSIONS.map((mission) => [mission.id, advanceMission(mission, s.missions[mission.id], event)])) }));
 }

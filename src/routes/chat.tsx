@@ -3,13 +3,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import mochiImg from "@/assets/char-mochi.jpg";
 import soraImg from "@/assets/char-sora.jpg";
 import { CHAT } from "@/data/game";
 import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/chat.functions";
 import { useUser } from "@/lib/session";
-import { addXp, useProgress } from "@/lib/progress";
+import { rewardFirstChat } from "@/lib/progress";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/chat")({
@@ -59,7 +60,6 @@ const time = (d: string) => new Date(d).toLocaleTimeString([], { hour: "2-digit"
 function Conversation({ who, uid }: { who: Who; uid: string }) {
   const qc = useQueryClient();
   const send = useServerFn(sendChat);
-  const p = useProgress();
   const key = ["chat", uid, who];
   const hist = useQuery({ queryKey: key, queryFn: async () => {
     const r = await supabase.from("chat_messages").select("id, role, content, created_at").eq("user_id", uid).eq("character", who).order("created_at", { ascending: false }).limit(200);
@@ -76,7 +76,8 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
     try {
       const r = await send({ data: { character: who, text: t } });
       if (!r.ok) setErr(r.error);
-      else if (!p.chatted.includes(who)) addXp(25, (s) => ({ chatted: [...s.chatted, who] }));
+      const earned = rewardFirstChat(who, r.ok);
+      if (earned) toast.success(`+${earned} XP · First chat with ${CHAT[who].name}`);
     } catch { setErr("Couldn't send. Please try again."); setText((draft) => draft || t); }
     finally {
       try { await qc.invalidateQueries({ queryKey: key }); }
