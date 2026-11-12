@@ -17,16 +17,12 @@ export const level = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 
 function rules(s: Progress): { badges: string[]; chars: string[] } {
   const b: string[] = [], c: string[] = [];
-  if (s.visited.length >= 1) { b.push("first-steps"); c.push("pip"); }
-  if (s.done.includes("library")) { b.push("bookworm"); c.push("kumo"); }
-  if (s.chatted.length >= 1) c.push("hana");
+  if (s.visited.length >= 1) b.push("first-steps");
+  if (s.done.includes("library")) b.push("bookworm");
   if (s.chatted.length >= 2) b.push("friendly");
-  if (s.done.includes("trivia4")) c.push("tetsu");
   if (s.done.includes("trivia5")) b.push("trivia-star");
-  if (s.vote !== null) { b.push("voice"); c.push("yuzu"); }
-  if (s.visited.length >= 4) { b.push("explorer"); c.push("rin"); }
-  if (level(s.xp) >= 4) c.push("kai");
-  if (s.done.includes("gps") || s.walks >= 3) c.push("nori");
+  if (s.vote !== null) b.push("voice");
+  if (s.done.includes("mochi-turnin")) { c.push("mochi"); b.push("explorer"); }
   return { badges: b, chars: c };
 }
 
@@ -57,3 +53,7 @@ const server = fresh();
 export function useProgress() { return useSyncExternalStore(subscribe, () => state, () => server); }
 export function useUnlock() { return useSyncExternalStore(subscribe, () => unlockQueue[0], () => undefined); }
 export const _testing = { rules, fresh };
+
+export type QuestStage = "find" | "library" | "return" | "done";
+export const questStage = (s: Progress): QuestStage =>
+  s.done.includes("mochi-turnin") ? "done" : s.done.includes("library") ? (s.done.includes("mochi-met") ? "return" : "find") : s.done.includes("mochi-met") ? "library" : "find";

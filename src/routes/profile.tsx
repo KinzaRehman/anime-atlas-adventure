@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { BADGES, COLLECTIBLES, LOCATIONS } from "@/data/game";
+import { BADGES, COLLECTIBLES } from "@/data/game";
 import { level, reset, update, useProgress } from "@/lib/progress";
 
 export const Route = createFileRoute("/profile")({
@@ -17,7 +17,7 @@ function Profile() {
   const nav = useNavigate();
   const [copied, setCopied] = useState("");
   const [fallback, setFallback] = useState("");
-  const summary = `🗺️ My AnimeAtlas journey — ${p.name}\nLevel ${level(p.xp)} · ${p.xp} XP\nFriends (${p.chars.length}/${COLLECTIBLES.length}): ${COLLECTIBLES.filter((c) => p.chars.includes(c.id)).map((c) => `${c.emoji} ${c.name}`).join(", ") || "none yet"}\nBadges (${p.badges.length}/${BADGES.length}): ${BADGES.filter((b) => p.badges.includes(b.id)).map((b) => b.name).join(", ") || "none yet"}\nPlaces visited: ${p.visited.length}/${LOCATIONS.length}`;
+  const summary = `🗺️ My AnimeAtlas journey — ${p.name}\nLevel ${level(p.xp)} · ${p.xp} XP\nFriends (${p.chars.length}/${COLLECTIBLES.length}): ${COLLECTIBLES.filter((c) => p.chars.includes(c.id)).map((c) => c.name).join(", ") || "none yet"}\nBadges (${p.badges.length}/${BADGES.length}): ${BADGES.filter((b) => p.badges.includes(b.id)).map((b) => b.name).join(", ") || "none yet"}`;
   const copy = async () => {
     try { await navigator.clipboard.writeText(summary); setCopied("Copied to clipboard! ✨"); setFallback(""); }
     catch { setFallback(summary); setCopied("Couldn't copy automatically — select the text below."); }

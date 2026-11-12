@@ -1,12 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { _testing, level } from "@/lib/progress";
+import { _testing, level, questStage } from "@/lib/progress";
+const f = _testing.fresh;
 describe("progress rules", () => {
   it("level up every 100 XP", () => { expect(level(0)).toBe(1); expect(level(300)).toBe(4); });
-  it("visiting all 4 locations unlocks Rin and Explorer", () => {
-    const r = _testing.rules({ ..._testing.fresh(), visited: ["a", "b", "c", "d"] });
-    expect(r.chars).toContain("rin"); expect(r.badges).toContain("explorer");
+  it("Mochi unlocks only after the quest is turned in", () => {
+    expect(_testing.rules({ ...f(), done: ["mochi-met", "library"] }).chars).not.toContain("mochi");
+    expect(_testing.rules({ ...f(), done: ["mochi-met", "library", "mochi-turnin"] }).chars).toContain("mochi");
   });
-  it("3 virtual walks unlock Nori without GPS", () => {
-    expect(_testing.rules({ ..._testing.fresh(), walks: 3 }).chars).toContain("nori");
+  it("quest goes find -> library -> return -> done", () => {
+    expect(questStage(f())).toBe("find");
+    expect(questStage({ ...f(), done: ["mochi-met"] })).toBe("library");
+    expect(questStage({ ...f(), done: ["mochi-met", "library"] })).toBe("return");
+    expect(questStage({ ...f(), done: ["mochi-met", "library", "mochi-turnin"] })).toBe("done");
   });
 });

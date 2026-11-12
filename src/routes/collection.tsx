@@ -16,10 +16,10 @@ function Collection() {
   const p = useProgress();
   return (
     <div>
-      <h1 className="text-3xl font-bold">Collection</h1>
+      <h1 className="text-4xl font-black">Collection</h1>
       <p className="text-muted-foreground">{p.chars.length} of {COLLECTIBLES.length} friends met. Every friend is earned through a clear achievement — no random draws.</p>
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {COLLECTIBLES.map((c) => <CharCard key={c.id} c={c} unlocked={p.chars.includes(c.id)} />)}
+        {COLLECTIBLES.map((c, i) => <CharCard key={c.id} n={i + 1} c={c} unlocked={p.chars.includes(c.id)} />)}
       </div>
     </div>
   );

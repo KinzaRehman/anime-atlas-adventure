@@ -30,3 +30,4 @@ use the editor.
 <!-- LOVABLE:END -->
 
 - Game content lives in src/data/game.ts and progress in src/lib/progress.ts (localStorage); keep UI reading only these so an Express/Mongo API can replace them later.
+- Game world uses Phaser (src/game, lazy-loaded in GameCanvas); React HUD talks to it only via src/game/bus.ts. Dev builds expose window.__scene for scripted checks (teleport via __scene.player.setPosition).

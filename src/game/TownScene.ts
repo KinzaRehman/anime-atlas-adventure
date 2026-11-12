@@ -1,0 +1,128 @@
+import Phaser from "phaser";
+import ground from "@/assets/world/ground.webp";
+import libraryImg from "@/assets/world/library.webp";
+import playerImg from "@/assets/world/player.webp";
+import mochiImg from "@/assets/world/mochi.webp";
+import { bus } from "./bus";
+import { BLOCKERS, INTERACT_RADIUS, LIBRARY, MOCHI, SPAWN, WORLD } from "./world";
+
+const SPEED = 260; // px/s
+const ACCEL = 12;  // velocity smoothing
+
+export class TownScene extends Phaser.Scene {
+  player!: Phaser.GameObjects.Image;
+  private shadow!: Phaser.GameObjects.Ellipse;
+  private mochi!: Phaser.GameObjects.Image;
+  private marker!: Phaser.GameObjects.Container;
+  private vel = new Phaser.Math.Vector2();
+  private keys!: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
+  private walkT = 0;
+  private lastNear = "";
+  private posTick = 0;
+  reduced = false;
+
+  constructor() { super("town"); }
+
+  preload() {
+    this.load.image("ground", ground);
+    this.load.image("library", libraryImg);
+    this.load.image("player", playerImg);
+    this.load.image("mochi", mochiImg);
+  }
+
+  create() {
+    this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.add.image(0, 0, "ground").setOrigin(0).setDepth(-10);
+    // warm evening grade
+    this.add.rectangle(0, 0, WORLD.w, WORLD.h, 0xffb27a, 0.08).setOrigin(0).setDepth(5000).setBlendMode(Phaser.BlendModes.MULTIPLY);
+
+    const lib = this.add.image(LIBRARY.x, LIBRARY.y + 140, "library").setOrigin(0.5, 1);
+    lib.setScale(LIBRARY.w / lib.width).setDepth(LIBRARY.y + 140);
+    // door glow
+    const glow = this.add.circle(LIBRARY.door.x, LIBRARY.door.y, 70, 0xffd27a, 0.25).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
+    if (!this.reduced) this.tweens.add({ targets: glow, alpha: 0.08, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+
+    this.mochi = this.add.image(MOCHI.x, MOCHI.y, "mochi").setOrigin(0.5, 1).setDisplaySize(64, 187).setDepth(MOCHI.y);
+    this.add.ellipse(MOCHI.x, MOCHI.y - 4, 56, 16, 0x24212a, 0.25).setDepth(MOCHI.y - 1);
+    if (!this.reduced) this.tweens.add({ targets: this.mochi, y: MOCHI.y - 4, duration: 900, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.marker = this.makeMarker(MOCHI.x, MOCHI.y - 210);
+
+    this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
+    this.player = this.add.image(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
+
+    // petals
+    const g = this.make.graphics({ x: 0, y: 0 }, false);
+    g.fillStyle(0xf4b8c6, 1).fillEllipse(6, 4, 12, 7).generateTexture("petal", 12, 8).destroy();
+    if (!this.reduced) this.add.particles(0, 0, "petal", {
+      x: { min: 0, max: WORLD.w }, y: -20, lifespan: 14000, speedY: { min: 30, max: 60 }, speedX: { min: -30, max: 30 },
+      rotate: { start: 0, end: 360 }, scale: { min: 0.6, max: 1.1 }, alpha: { start: 0.9, end: 0.4 }, frequency: 260,
+    }).setDepth(6000);
+
+    this.cameras.main.setBounds(0, 0, WORLD.w, WORLD.h).startFollow(this.player, true, 0.12, 0.12).setRoundPixels(false);
+    this.applyZoom();
+    this.scale.on("resize", () => this.applyZoom());
+    this.cameras.main.fadeIn(600, 246, 240, 230);
+
+    const kb = this.input.keyboard!;
+    this.keys = kb.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT") as TownScene["keys"];
+    kb.removeCapture("W,A,S,D,SPACE"); // keep typing in inputs working
+    bus.emit("ready", true);
+  }
+
+  private applyZoom() { const w = this.scale.width; this.cameras.main.setZoom(w < 640 ? 0.85 : w < 1100 ? 1 : 1.1); }
+
+  private makeMarker(x: number, y: number) {
+    const ring = this.add.circle(0, 0, 18, 0xd98fa0).setStrokeStyle(3, 0xf6f0e6);
+    const dot = this.add.text(0, 0, "!", { fontFamily: "Zen Maru Gothic, sans-serif", fontSize: "24px", color: "#F6F0E6", fontStyle: "bold" }).setOrigin(0.5);
+    const c = this.add.container(x, y, [ring, dot]).setDepth(7000);
+    if (!this.reduced) this.tweens.add({ targets: c, y: y - 10, duration: 700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    return c;
+  }
+
+  setMarker(visible: boolean) { this.marker?.setVisible(visible); }
+
+  celebrate(x: number, y: number) {
+    if (this.reduced) return;
+    const e = this.add.particles(x, y, "petal", { speed: { min: 120, max: 320 }, lifespan: 1200, quantity: 40, scale: { start: 1.4, end: 0 }, rotate: { start: 0, end: 540 }, emitting: false }).setDepth(8000);
+    e.explode(48);
+    this.time.delayedCall(1500, () => e.destroy());
+  }
+
+  private blocked(x: number, y: number) {
+    if (x < 30 || y < 120 || x > WORLD.w - 30 || y > WORLD.h - 10) return true;
+    if (Math.hypot(x - MOCHI.x, (y - MOCHI.y) * 2) < 40) return true;
+    return BLOCKERS.some(([bx, by, bw, bh]) => x > bx && x < bx + bw && y > by && y < by + bh);
+  }
+
+  override update(_t: number, dms: number) {
+    const dt = Math.min(dms / 1000, 0.05);
+    let ix = bus.input.x, iy = bus.input.y;
+    const k = this.keys;
+    if (k.A.isDown || k.LEFT.isDown) ix = -1; if (k.D.isDown || k.RIGHT.isDown) ix = 1;
+    if (k.W.isDown || k.UP.isDown) iy = -1; if (k.S.isDown || k.DOWN.isDown) iy = 1;
+    if (bus.paused) { ix = 0; iy = 0; }
+    const len = Math.hypot(ix, iy); if (len > 1) { ix /= len; iy /= len; }
+    const blend = 1 - Math.exp(-ACCEL * dt);
+    this.vel.x += (ix * SPEED - this.vel.x) * blend;
+    this.vel.y += (iy * SPEED - this.vel.y) * blend;
+    const p = this.player;
+    const nx = p.x + this.vel.x * dt, ny = p.y + this.vel.y * dt;
+    if (!this.blocked(nx, p.y)) p.x = nx; else this.vel.x = 0;
+    if (!this.blocked(p.x, ny)) p.y = ny; else this.vel.y = 0;
+
+    const moving = Math.hypot(this.vel.x, this.vel.y) > 20;
+    if (moving) { this.walkT += dt * 12; if (Math.abs(this.vel.x) > 20) p.setFlipX(this.vel.x < 0); }
+    const bob = moving && !this.reduced ? Math.abs(Math.sin(this.walkT)) * 5 : 0;
+    p.setDisplaySize(62, 168 - bob * 0.6).setAngle(moving && !this.reduced ? Math.sin(this.walkT) * 2.5 : 0);
+    p.setDepth(p.y); this.shadow.setPosition(p.x, p.y - 3).setDepth(p.y - 1);
+
+    // proximity
+    const dM = Math.hypot(p.x - MOCHI.x, p.y - MOCHI.y), dL = Math.hypot(p.x - LIBRARY.door.x, p.y - LIBRARY.door.y);
+    const near = dM < INTERACT_RADIUS ? "mochi" : dL < INTERACT_RADIUS ? "library" : "";
+    if (near !== this.lastNear) {
+      this.lastNear = near;
+      bus.emit("near", near === "mochi" ? { id: "mochi", label: "Talk to Mochi" } : near === "library" ? { id: "library", label: "Enter Manga Library" } : null);
+    }
+    if ((this.posTick += dms) > 100) { this.posTick = 0; bus.emit("pos", { x: p.x, y: p.y }); }
+  }
+}

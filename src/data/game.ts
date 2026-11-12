@@ -11,24 +11,31 @@ export const LOCATIONS: Location[] = [
   { id: "plaza", name: "Community Plaza", emoji: "⛲", blurb: "Join discussions and vote in polls.", x: 74, y: 70 },
 ];
 
-export const COLLECTIBLES: Collectible[] = [
-  { id: "pip", name: "Pip", title: "Lantern Courier", emoji: "🏮", rarity: "common", hue: "peach", how: "Visit your first location" },
-  { id: "kumo", name: "Kumo", title: "Cloud Sketcher", emoji: "🎨", rarity: "common", hue: "lavender", how: "Finish the Manga Library" },
-  { id: "hana", name: "Hana", title: "Garden Captain", emoji: "🌸", rarity: "common", hue: "pink", how: "Chat with a café friend" },
-  { id: "tetsu", name: "Tetsu", title: "Quiz Ace", emoji: "🎯", rarity: "rare", hue: "sage", how: "Score 4+ in Trivia Arcade" },
-  { id: "yuzu", name: "Yuzu", title: "Plaza Host", emoji: "🍋", rarity: "rare", hue: "peach", how: "Vote in a community poll" },
-  { id: "rin", name: "Rin", title: "Map Explorer", emoji: "🧭", rarity: "rare", hue: "lavender", how: "Visit all four locations" },
-  { id: "kai", name: "Kai", title: "Town Hero", emoji: "🏅", rarity: "legendary", hue: "pink", how: "Reach level 4" },
-  { id: "nori", name: "Nori", title: "Wanderer", emoji: "🍙", rarity: "legendary", hue: "sage", how: "Make a GPS discovery (or walk virtually 3 times)" },
+export interface Character extends Collectible { portrait?: string; role: string; bio: string; likes: string[]; }
+// Discoverable characters. `portrait` is filled in by the UI layer (asset imports).
+export const COLLECTIBLES: Character[] = [
+  { id: "mochi", name: "Mochi", title: "Manga Librarian", role: "Keeper of the Sakuragaoka Library", emoji: "", rarity: "rare", hue: "pink",
+    how: "Find Mochi by the fountain and help her at the library",
+    bio: "Mochi has read every volume on the library's shelves at least twice. She runs the Sunday sketch club and believes every reader deserves a story that feels like home.",
+    likes: ["Slice-of-life manga", "Strawberry milk", "Drawing tiny buildings"] },
+  { id: "sora", name: "Sora", title: "Café Barista", role: "Arrives with the Café district", emoji: "", rarity: "common", hue: "lavender", how: "Arrives with the Café district", bio: "", likes: [] },
+  { id: "tetsu", name: "Tetsu", title: "Quiz Ace", role: "Arrives with the Arcade district", emoji: "", rarity: "rare", hue: "sage", how: "Arrives with the Arcade district", bio: "", likes: [] },
+  { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Arrives with the Plaza district", emoji: "", rarity: "legendary", hue: "peach", how: "Arrives with the Plaza district", bio: "", likes: [] },
 ];
 
+export const MOCHI_LINES = {
+  intro: ["Oh! A new face in Sakuragaoka. Hello, I'm Mochi, the town librarian.", "A delivery of manga just came in and the genre shelves are all mixed up…", "Could you pop into the library and match each genre to its story? I'll wait right here!"],
+  waiting: ["The library is just up the path, the one with the glowing lanterns.", "Match each genre to its story hook and come back to me!"],
+  thanks: ["You sorted every shelf? That's amazing, thank you!", "Here, take my librarian card. Now we're officially friends."],
+  after: ["Thanks again for the help! More friends will arrive as the town grows."],
+};
 export const BADGES: Badge[] = [
   { id: "first-steps", name: "First Steps", emoji: "👣", how: "Start exploring" },
   { id: "bookworm", name: "Bookworm", emoji: "📖", how: "Complete the library match" },
   { id: "trivia-star", name: "Trivia Star", emoji: "🌟", how: "Perfect trivia score" },
   { id: "friendly", name: "Friendly Chat", emoji: "💬", how: "Talk with both café friends" },
   { id: "voice", name: "Community Voice", emoji: "🗳️", how: "Vote in a poll" },
-  { id: "explorer", name: "Explorer", emoji: "🗺️", how: "Visit all locations" },
+  { id: "explorer", name: "New Friend", emoji: "🗺️", how: "Befriend your first character" },
 ];
 
 export const TRIVIA = [
