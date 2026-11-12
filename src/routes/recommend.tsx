@@ -55,10 +55,12 @@ function Recommend() {
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">{r.vibe}</p>
               <h2 className="font-display text-xl font-bold">{r.title}</h2>
               <p className="mt-1 text-sm leading-relaxed">{r.why}</p>
+              {r.watch && r.watch.length > 0 && <div className="mt-3"><p className="text-xs font-semibold text-muted-foreground">Where to watch</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">{r.watch.map((w) => <a key={w} target="_blank" rel="noreferrer" href={`https://www.google.com/search?q=${encodeURIComponent(`${r.title} anime watch on ${w}`)}`} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground hover:bg-muted">{w}</a>)}</div></div>}
             </li>
           ))}
         </ul>
-        {recs.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Picks are AI-generated and spoiler-free. Check age ratings with your family before watching.</p>}
+        {recs.length > 0 && <p className="mt-3 text-xs text-muted-foreground">Picks are AI-generated and spoiler-free. Streaming availability varies by country, so check before watching, along with age ratings.</p>}
       </div>
     </div>
   );
