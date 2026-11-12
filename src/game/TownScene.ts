@@ -56,7 +56,9 @@ export class TownScene extends Phaser.Scene {
   }
 
   private avatarN = 0;
-  setAvatar(url: string) {
+  private sparkly = false; private idleT = 0; private sparkT = 0;
+  setAvatar(url: string, sparkly = false) {
+    this.sparkly = sparkly;
     const key = `avatar-${++this.avatarN}`;
     const img = new Image();
     img.onload = () => { if (!this.sys?.isActive()) return; this.textures.addImage(key, img); this.player?.setTexture(key).setDisplaySize(62, 168); };
@@ -174,7 +176,14 @@ export class TownScene extends Phaser.Scene {
     const moving = Math.hypot(this.vel.x, this.vel.y) > 20;
     if (moving) { this.walkT += dt * 12; if (Math.abs(this.vel.x) > 20) p.setFlipX(this.vel.x < 0); }
     const bob = moving && !this.reduced ? Math.abs(Math.sin(this.walkT)) * 5 : 0;
-    p.setDisplaySize(62, 168 - bob * 0.6).setAngle(moving && !this.reduced ? Math.sin(this.walkT) * 2.5 : 0);
+    this.idleT += dt;
+    const breathe = !moving && !this.reduced ? Math.sin(this.idleT * 2.4) * 1.6 : 0;
+    p.setDisplaySize(62, 168 - bob * 0.6 + breathe).setAngle(moving && !this.reduced ? Math.sin(this.walkT) * 2.5 : 0);
+    if (this.sparkly && !this.reduced && (this.sparkT -= dt) <= 0) {
+      this.sparkT = moving ? 0.12 : 0.45;
+      const sp = this.add.star(p.x + Phaser.Math.Between(-28, 28), p.y - Phaser.Math.Between(10, 150), 4, 2, 6, Phaser.Math.RND.pick([0xfff4c9, 0xf6bfcf, 0xffffff])).setDepth(p.y + 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({ targets: sp, y: sp.y - 24, alpha: 0, scale: 0.3, angle: 90, duration: 900, onComplete: () => sp.destroy() });
+    }
     p.setDepth(p.y); this.shadow.setPosition(p.x, p.y - 3).setDepth(p.y - 1);
 
     // proximity
