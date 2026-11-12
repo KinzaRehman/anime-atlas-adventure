@@ -22,8 +22,8 @@ export const COLLECTIBLES: Character[] = [
     how: "Meet Sora outside the café and win her Café Quiz",
     bio: "Sora knows every regular's order and every anime opening by heart. She hosts quiz nights at the café and says a good question is better than a good latte (almost).",
     likes: ["Opening theme songs", "Melon bread", "Quiz nights"] },
-  { id: "tetsu", name: "Tetsu", title: "Quiz Ace", role: "Arrives with the Arcade district", emoji: "", rarity: "rare", hue: "sage", how: "Arrives with the Arcade district", bio: "", likes: [] },
-  { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Arrives with the Plaza district", emoji: "", rarity: "legendary", hue: "peach", how: "Arrives with the Plaza district", bio: "", likes: [] },
+  { id: "tetsu", name: "Tetsu", title: "Quiz Ace", role: "Host of the Trivia Arcade", emoji: "", rarity: "rare", hue: "sage", how: "After helping Sora, meet Tetsu and clear his Arcade challenge", bio: "Tetsu fills notebooks with facts about manga production. He started the neighborhood quiz club so everyone could learn together, and always cheers louder for a friend's answer than his own.", likes: ["Sports manga", "Quiz notebooks", "Teamwork"] },
+  { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Community Pavilion organizer", emoji: "", rarity: "legendary", hue: "peach", how: "After helping Sora, help Yuzu prepare a welcoming town festival", bio: "Yuzu brings the neighborhood together through sketch swaps and reading circles. Her event cards are handwritten, and she always saves a seat for someone visiting for the first time.", likes: ["Sketch swaps", "Picnics", "Handmade invitations"] },
 ];
 
 export const MOCHI_LINES = {
@@ -99,3 +99,36 @@ export const CHAT: Record<"mochi" | "sora", { name: string; role: string; nodes:
 };
 
 export const XP_PER_LEVEL = 100;
+
+export type TownFriend = "tetsu" | "yuzu";
+export type QuestQuestion = { q: string; a: string[]; c: number };
+export const TOWN_QUESTS = {
+  tetsu: {
+    location: "arcade", building: "Trivia Arcade", title: "Tetsu's Knowledge Rally",
+    objective: { find: "Meet Tetsu by the western Arcade", activity: "Clear Tetsu's Knowledge Rally", return: "Return to Tetsu for his card", done: "Tetsu's card collected", locked: "Help Sora first" },
+    lines: {
+      locked: ["Welcome! Sora is looking for a quiz partner. Help her at the café, then join our rally!"],
+      intro: ["Hey, I'm Tetsu! I run the Trivia Arcade's quiz club.", "Our Knowledge Rally has five questions about manga and anime. No timer, just curiosity!", "Head inside and clear the rally, then come back for my Quiz Ace card."],
+      waiting: ["The Knowledge Rally is waiting inside the Arcade. Every question has another chance if you need it."],
+      thanks: ["Five questions cleared! That's the spirit of our quiz club.", "You've earned my Quiz Ace card. Let's keep learning together!"],
+      after: ["You're always welcome to replay the rally. Yuzu is preparing something over at the Pavilion!"],
+    },
+    questions: TRIVIA,
+  },
+  yuzu: {
+    location: "plaza", building: "Community Pavilion", title: "Yuzu's Festival Welcome",
+    objective: { find: "Meet Yuzu by the eastern Pavilion", activity: "Prepare Yuzu's Festival Welcome", return: "Return to Yuzu for her card", done: "Yuzu's card collected", locked: "Help Sora first" },
+    lines: {
+      locked: ["Hello! I'm planning our next gathering. First, help Sora with quiz night at the café."],
+      intro: ["Hello, I'm Yuzu! I organize our neighborhood gatherings.", "I'm planning a festival where every anime fan feels welcome. Could you help with three event cards?", "Step into the Pavilion and choose a thoughtful plan for each card. Come back when everything's ready!"],
+      waiting: ["The three event cards are inside the Pavilion. A little kindness makes a wonderful festival."],
+      thanks: ["Our festival plan is ready! New visitors and longtime friends will feel at home.", "Here's my Plaza Host card, with thanks for bringing everyone together."],
+      after: ["The Pavilion is always open. We can plan another gathering anytime!"],
+    },
+    questions: [
+      { q: "Welcome table: a new visitor hasn't watched your favorite series. What goes on their invitation?", a: ["A friendly, spoiler-free introduction", "The ending and every plot twist", "Only fans who finished it may join"], c: 0 },
+      { q: "Sketch circle: someone is drawing their very first character. How do you organize the table?", a: ["Only experienced artists can sit here", "Welcome every skill level and share encouragement", "Rank everyone's drawings from worst to best"], c: 1 },
+      { q: "Discussion corner: two friends prefer different genres. What should the event card say?", a: ["One genre is the only right answer", "Cancel the conversation", "Take turns, listen, and respect different tastes"], c: 2 },
+    ],
+  },
+} satisfies Record<TownFriend, { location: string; building: string; title: string; objective: Record<string, string>; lines: Record<string, string[]>; questions: QuestQuestion[] }>;

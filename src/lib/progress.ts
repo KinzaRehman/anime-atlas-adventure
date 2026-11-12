@@ -22,6 +22,10 @@ function rules(s: Progress): { badges: string[]; chars: string[] } {
   if (s.chatted.length >= 2) b.push("friendly");
   if (s.done.includes("trivia5") || s.done.includes("cafe")) b.push("trivia-star");
   if (s.done.includes("sora-turnin")) c.push("sora");
+  for (const id of ["tetsu", "yuzu"]) {
+    const activity = id === "tetsu" ? "arcade" : "plaza";
+    if (s.done.includes("sora-turnin") && s.done.includes(`${id}-met`) && s.done.includes(activity) && s.done.includes(`${id}-turnin`)) c.push(id);
+  }
   if (s.vote !== null) b.push("voice");
   if (s.done.includes("mochi-turnin")) { c.push("mochi"); b.push("explorer"); }
   return { badges: b, chars: c };
@@ -38,8 +42,8 @@ export function update(fn: (s: Progress) => Partial<Progress>) {
   // second pass in case new chars push level
   state = next;
   if (level(state.xp) > prevLvl) unlockQueue.push({ kind: "level", label: `Level ${level(state.xp)}!`, emoji: "⬆️" });
-  newB.forEach((id) => { const x = BADGES.find((b) => b.id === id)!; unlockQueue.push({ kind: "badge", label: x.name, emoji: x.emoji }); });
-  newC.forEach((id) => { const x = COLLECTIBLES.find((c) => c.id === id)!; unlockQueue.push({ kind: "char", label: `${x.name}, ${x.title}`, emoji: x.emoji }); });
+  newB.forEach((id) => { const x = BADGES.find((b) => b.id === id); if (x) unlockQueue.push({ kind: "badge", label: x.name, emoji: x.emoji }); });
+  newC.forEach((id) => { const x = COLLECTIBLES.find((c) => c.id === id); if (x) unlockQueue.push({ kind: "char", label: `${x.name}, ${x.title}`, emoji: x.emoji }); });
   const again = rules(state).chars.filter((x) => !state.chars.includes(x));
   if (again.length) return update(() => ({}));
   emit();
@@ -61,3 +65,10 @@ export const questStage = (s: Progress): QuestStage =>
 
 export const soraStage = (s: Progress): QuestStage | "locked" =>
   !s.done.includes("mochi-turnin") ? "locked" : s.done.includes("sora-turnin") ? "done" : !s.done.includes("sora-met") ? "find" : s.done.includes("cafe") ? "return" : "library";
+
+export function townQuestStage(s: Progress, id: "tetsu" | "yuzu"): "locked" | "find" | "activity" | "return" | "done" {
+  if (!s.done.includes("sora-turnin")) return "locked";
+  if (!s.done.includes(`${id}-met`)) return "find";
+  if (!s.done.includes(id === "tetsu" ? "arcade" : "plaza")) return "activity";
+  return s.done.includes(`${id}-turnin`) ? "done" : "return";
+}

@@ -31,6 +31,7 @@ use the editor.
 
 - Game content lives in src/data/game.ts and progress in src/lib/progress.ts (localStorage); keep UI reading only these so an Express/Mongo API can replace them later.
 - Game world uses Phaser (src/game, lazy-loaded in GameCanvas); React HUD talks to it only via src/game/bus.ts. Dev builds expose window.__scene for scripted checks (teleport via __scene.player.setPosition).
+- Town expansion quests use TOWN_QUESTS content and QuestChallenge with townQuestStage; completion and turn-in remain separate so collectible cards require the full encounter loop.
 - AI model calls go through @lovable.dev/ai-gateway inside createServerFn handlers in src/lib/*.functions.ts; keeps keys server-side.
 - Community data (posts, comments, likes, polls) is read/written from the browser via the generated client in src/lib/community.ts, guarded by RLS; guests read, signed-in users write their own rows.
 - Character chat history lives in the chat_messages table per user+character; sendChat (src/lib/chat.functions.ts) saves both turns server-side so history and replies stay consistent.
