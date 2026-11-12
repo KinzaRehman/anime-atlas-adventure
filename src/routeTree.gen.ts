@@ -15,6 +15,7 @@ import { Route as CollectionRouteImport } from './routes/collection'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FandomsRouteImport } from './routes/fandoms'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RecommendRouteImport } from './routes/recommend'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecommendRoute = RecommendRouteImport.update({
+  id: '/recommend',
+  path: '/recommend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/fandoms': typeof FandomsRoute
   '/profile': typeof ProfileRoute
+  '/recommend': typeof RecommendRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/fandoms': typeof FandomsRoute
   '/profile': typeof ProfileRoute
+  '/recommend': typeof RecommendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/fandoms': typeof FandomsRoute
   '/profile': typeof ProfileRoute
+  '/recommend': typeof RecommendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/chat' | '/collection' | '/explore' | '/fandoms' | '/profile'
+    | '/'
+    | '/chat'
+    | '/collection'
+    | '/explore'
+    | '/fandoms'
+    | '/profile'
+    | '/recommend'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/collection' | '/explore' | '/fandoms' | '/profile'
+  to:
+    | '/'
+    | '/chat'
+    | '/collection'
+    | '/explore'
+    | '/fandoms'
+    | '/profile'
+    | '/recommend'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/fandoms'
     | '/profile'
+    | '/recommend'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FandomsRoute: typeof FandomsRoute
   ProfileRoute: typeof ProfileRoute
+  RecommendRoute: typeof RecommendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recommend': {
+      id: '/recommend'
+      path: '/recommend'
+      fullPath: '/recommend'
+      preLoaderRoute: typeof RecommendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FandomsRoute: FandomsRoute,
   ProfileRoute: ProfileRoute,
+  RecommendRoute: RecommendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
