@@ -24,6 +24,8 @@ export const COLLECTIBLES: Character[] = [
     likes: ["Opening theme songs", "Melon bread", "Quiz nights"] },
   { id: "tetsu", name: "Tetsu", title: "Quiz Ace", role: "Host of the Trivia Arcade", emoji: "", rarity: "rare", hue: "sage", how: "After helping Sora, meet Tetsu and clear his Arcade challenge", bio: "Tetsu fills notebooks with facts about manga production. He started the neighborhood quiz club so everyone could learn together, and always cheers louder for a friend's answer than his own.", likes: ["Sports manga", "Quiz notebooks", "Teamwork"] },
   { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Community Pavilion organizer", emoji: "", rarity: "legendary", hue: "peach", how: "After helping Sora, help Yuzu prepare a welcoming town festival", bio: "Yuzu brings the neighborhood together through sketch swaps and reading circles. Her event cards are handwritten, and she always saves a seat for someone visiting for the first time.", likes: ["Sketch swaps", "Picnics", "Handmade invitations"] },
+  { id: "ren", name: "Ren", title: "Workshop Keeper", role: "Sakuragaoka bicycle mechanic", emoji: "", rarity: "rare", hue: "sage", how: "Meet Ren, complete his bicycle safety check, and return for his card", bio: "Ren restores old bicycles for neighbors and believes careful preparation makes every journey better. His workshop is a welcoming place to learn practical skills.", likes: ["Bicycle repairs", "Careful craftsmanship", "Neighborhood rides"] },
+  { id: "hana", name: "Hana", title: "Sketch Club Artist", role: "Town Art Studio host", emoji: "", rarity: "rare", hue: "lavender", how: "Meet Hana, complete the sketch club challenge, and return for her card", bio: "Hana draws the quiet details of Sakuragaoka. She welcomes beginners into her studio and shares simple ways to turn everyday observations into original artwork.", likes: ["Original characters", "Sketchbooks", "Drawing town buildings"] },
 ];
 
 export const MOCHI_LINES = {
@@ -46,6 +48,8 @@ export const CAFE_QUIZ = [
   { q: "A story's big emotional season ending is called the…", a: ["Finale", "Prologue", "Filler"], c: 0 },
 ];
 export const BADGES: Badge[] = [
+  { id: "daily-explorer", name: "Daily Explorer", emoji: "", how: "Complete a daily town mission" },
+  { id: "weekly-explorer", name: "Town Trailblazer", emoji: "", how: "Complete a weekly six-building mission" },
   { id: "first-steps", name: "First Steps", emoji: "👣", how: "Start exploring" },
   { id: "bookworm", name: "Bookworm", emoji: "📖", how: "Complete the library match" },
   { id: "trivia-star", name: "Trivia Star", emoji: "🌟", how: "Perfect trivia score" },
@@ -100,9 +104,29 @@ export const CHAT: Record<"mochi" | "sora", { name: string; role: string; nodes:
 
 export const XP_PER_LEVEL = 100;
 
-export type TownFriend = "tetsu" | "yuzu";
+export type TownFriend = "tetsu" | "yuzu" | "ren" | "hana";
 export type QuestQuestion = { q: string; a: string[]; c: number };
 export const TOWN_QUESTS = {
+  ren: {
+    location: "workshop", building: "Bicycle Workshop", title: "Ren's Ready-to-Ride Check",
+    objective: { find: "Meet Ren at the workshop", activity: "Complete Ren's safety check", return: "Return to Ren for his card", done: "Ren's card collected", locked: "Help Sora first" },
+    lines: { locked: ["Help Sora with quiz night first, then come visit the workshop."], intro: ["Hello, I'm Ren! I repair the neighborhood's bicycles.", "Could you help prepare our safety checklist? Three careful choices make a good start.", "Head into the workshop, then return for my Workshop Keeper card."], waiting: ["The safety checklist is inside the workshop."], thanks: ["A thoughtful checklist! Thank you for helping everyone prepare.", "Here is my Workshop Keeper card."], after: ["You're welcome to practice the checklist anytime."] },
+    questions: [
+      { q: "Before a ride, what should you check?", a: ["Brakes, tires, and a properly fitted helmet", "Only the bicycle's color", "Nothing at all"], c: 0 },
+      { q: "A bicycle's brakes feel loose. What is the careful choice?", a: ["Ride faster", "Ask a qualified mechanic before riding", "Ignore it"], c: 1 },
+      { q: "Where should a neighborhood ride take place?", a: ["Private driveways without permission", "Busy roads with no plan", "A permitted, safe public route with supervision when needed"], c: 2 },
+    ],
+  },
+  hana: {
+    location: "studio", building: "Town Art Studio", title: "Hana's Original Sketch Club",
+    objective: { find: "Meet Hana by the art studio", activity: "Prepare Hana's sketch club", return: "Return to Hana for her card", done: "Hana's card collected", locked: "Help Sora first" },
+    lines: { locked: ["Sora is preparing quiz night. Help her first, then visit our sketch club."], intro: ["I'm Hana! Welcome to the town's original sketch club.", "We're preparing three drawing cards for new artists.", "Visit the studio and finish them, then come back for my artist card."], waiting: ["The drawing cards are waiting inside the studio."], thanks: ["Our beginners have a wonderful starting point now!", "Here is my Sketch Club Artist card, with thanks."], after: ["The studio is open for another sketch club challenge anytime."] },
+    questions: [
+      { q: "How do you begin drawing a town building?", a: ["Start with simple shapes and proportions", "Draw every tiny detail first", "Skip observation"], c: 0 },
+      { q: "What makes a collectible character original?", a: ["Tracing a copyrighted character", "Your own design, personality, and story", "Changing only a famous character's name"], c: 1 },
+      { q: "A new artist asks for feedback. What helps?", a: ["Mock their first attempt", "Compare them to professionals", "Offer one kind, specific suggestion and encouragement"], c: 2 },
+    ],
+  },
   tetsu: {
     location: "arcade", building: "Trivia Arcade", title: "Tetsu's Knowledge Rally",
     objective: { find: "Meet Tetsu by the western Arcade", activity: "Clear Tetsu's Knowledge Rally", return: "Return to Tetsu for his card", done: "Tetsu's card collected", locked: "Help Sora first" },

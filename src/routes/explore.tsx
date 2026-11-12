@@ -8,18 +8,20 @@ import { Sheet } from "@/components/game/Sheet";
 import { Dialogue } from "@/components/game/Dialogue";
 import { GenreMatch } from "@/components/game/GenreMatch";
 import { CafeQuiz } from "@/components/game/CafeQuiz";
+import { Missions } from "@/components/game/Missions";
+import { Award } from "lucide-react";
 import { QuestChallenge } from "@/components/game/QuestChallenge";
 import { Button } from "@/components/ui/button";
 import { UnlockSequence } from "@/components/game/UnlockSequence";
 import { bus, type Target } from "@/game/bus";
-import { MOCHI, SORA, TETSU, YUZU } from "@/game/world";
+import { MOCHI, SORA, TETSU, YUZU, REN, HANA } from "@/game/world";
 import type { TownScene } from "@/game/TownScene";
 import { COLLECTIBLES, MOCHI_LINES, SORA_LINES, TOWN_QUESTS, XP_PER_LEVEL, type TownFriend } from "@/data/game";
-import { addXp, level, questStage, soraStage, townQuestStage, useProgress } from "@/lib/progress";
+import { addXp, level, questStage, soraStage, townQuestStage, useProgress, recordMission } from "@/lib/progress";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [
-    { title: "Explore Sakuragaoka | AnimeAtlas" }, { name: "description", content: "Explore four town locations, help Mochi, Sora, Tetsu and Yuzu, and earn their collectible cards." },
+    { title: "Explore Sakuragaoka | AnimeAtlas" }, { name: "description", content: "Explore six town locations, help original characters, complete daily and weekly missions, and earn collectible cards." },
     { property: "og:title", content: "Explore Sakuragaoka | AnimeAtlas" }, { property: "og:description", content: "A playable anime neighborhood." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
@@ -28,14 +30,15 @@ export const Route = createFileRoute("/explore")({
 
 const OBJECTIVE = { find: "Find someone by the fountain", library: "Sort the shelves at the Manga Library", return: "Return to Mochi" };
 const SORA_OBJ = { find: "Say hello to Sora outside the café", library: "Win Sora's Café Quiz", return: "Return to Sora", done: "", locked: "" };
-type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | "tetsu" | "yuzu" | "arcade" | "plaza" | "unlock-tetsu" | "unlock-yuzu";
+type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | "tetsu" | "yuzu" | "arcade" | "plaza" | "unlock-tetsu" | "unlock-yuzu" | "ren" | "hana" | "workshop" | "studio" | "unlock-ren" | "unlock-hana" | "missions";
 
 function Explore() {
   const p = useProgress();
   const stage = questStage(p);
   const sStage = soraStage(p);
   const tStage = townQuestStage(p, "tetsu"), yStage = townQuestStage(p, "yuzu");
-  const objective = stage !== "done" ? OBJECTIVE[stage] : sStage !== "done" ? SORA_OBJ[sStage] : tStage !== "done" ? TOWN_QUESTS.tetsu.objective[tStage] : yStage !== "done" ? TOWN_QUESTS.yuzu.objective[yStage] : "All four friends collected. Enjoy the town!";
+  const rStage = townQuestStage(p, "ren"), hStage = townQuestStage(p, "hana");
+  const objective = stage !== "done" ? OBJECTIVE[stage] : sStage !== "done" ? SORA_OBJ[sStage] : tStage !== "done" ? TOWN_QUESTS.tetsu.objective[tStage] : yStage !== "done" ? TOWN_QUESTS.yuzu.objective[yStage] : rStage !== "done" ? TOWN_QUESTS.ren.objective[rStage] : hStage !== "done" ? TOWN_QUESTS.hana.objective[hStage] : "All six friends collected. Enjoy the town!";
   const [near, setNear] = useState<Target>(null);
   const [ready, setReady] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
@@ -43,15 +46,15 @@ function Explore() {
   const onScene = useCallback((s: TownScene) => { scene.current = s; }, []);
   useEffect(() => { const a = bus.on("near", setNear), b = bus.on("ready", () => setReady(true)); return () => { a(); b(); }; }, []);
   useEffect(() => { bus.paused = overlay !== null; document.body.toggleAttribute("data-game-overlay", overlay !== null); return () => { bus.paused = false; document.body.removeAttribute("data-game-overlay"); }; }, [overlay]);
-  useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); }, [stage, sStage, tStage, yStage, ready]);
+  useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); scene.current?.setMarker("ren", rStage === "find" || rStage === "return"); scene.current?.setMarker("hana", hStage === "find" || hStage === "return"); }, [stage, sStage, tStage, yStage, rStage, hStage, ready]);
 
   const interact = useCallback(() => {
     if (!near || overlay) return;
     if (near.id === "mochi") setOverlay("dialogue");
     else if (near.id === "sora") setOverlay("sora");
-    else if (near.id === "tetsu" || near.id === "yuzu") setOverlay(near.id);
-    else if (near.id === "arcade" || near.id === "plaza") {
-      const id = near.id === "arcade" ? "tetsu" : "yuzu";
+    else if (near.id === "tetsu" || near.id === "yuzu" || near.id === "ren" || near.id === "hana") setOverlay(near.id);
+    else if (near.id === "arcade" || near.id === "plaza" || near.id === "workshop" || near.id === "studio") {
+      const id = near.id === "arcade" ? "tetsu" : near.id === "plaza" ? "yuzu" : near.id === "workshop" ? "ren" : "hana";
       const qStage = townQuestStage(p, id);
       if (qStage === "locked" || qStage === "find") { setOverlay(id); return; }
       const building = near.id;
@@ -80,22 +83,23 @@ function Explore() {
     if (sStage === "return") { addXp(80, (s) => ({ done: [...s.done, "sora-turnin"] })); scene.current?.celebrate(SORA.x, SORA.y - 100); setOverlay("unlock-sora"); return; }
     setOverlay(null);
   };
-  const cafeDone = () => { if (!p.done.includes("cafe")) addXp(60, (s) => ({ done: [...s.done, "cafe"] })); setOverlay(null); };
-  const libraryDone = () => { if (!p.done.includes("library")) addXp(60, (s) => ({ done: [...s.done, "library"] })); setOverlay(null); };
+  const cafeDone = () => { recordMission("cafe"); if (!p.done.includes("cafe")) addXp(60, (s) => ({ done: [...s.done, "cafe"] })); setOverlay(null); };
+  const libraryDone = () => { recordMission("library"); if (!p.done.includes("library")) addXp(60, (s) => ({ done: [...s.done, "library"] })); setOverlay(null); };
   const mochi = COLLECTIBLES.find((c) => c.id === "mochi"), sora = COLLECTIBLES.find((c) => c.id === "sora");
   const endTownDialogue = (id: TownFriend) => {
     const qStage = townQuestStage(p, id);
     if (qStage === "find") addXp(10, (s) => ({ done: [...s.done, `${id}-met`] }));
     if (qStage === "return") {
       addXp(80, (s) => ({ done: [...s.done, `${id}-turnin`] }));
-      const spot = id === "tetsu" ? TETSU : YUZU;
+      const spot = id === "tetsu" ? TETSU : id === "yuzu" ? YUZU : id === "ren" ? REN : HANA;
       scene.current?.celebrate(spot.x, spot.y - 100);
-      setOverlay(id === "tetsu" ? "unlock-tetsu" : "unlock-yuzu"); return;
+      setOverlay(`unlock-${id}`); return;
     }
     setOverlay(null);
   };
   const townChallengeDone = (id: TownFriend) => {
     const location = TOWN_QUESTS[id].location;
+    recordMission(location);
     if (!p.done.includes(location)) addXp(60, (s) => ({ done: [...s.done, location] }));
     setOverlay(null);
   };
@@ -121,13 +125,15 @@ function Explore() {
         <div className="pointer-events-auto"><Minimap met={stage !== "find"} soraOpen={sStage === "find" || sStage === "return"} tetsuOpen={tStage === "find" || tStage === "return"} yuzuOpen={yStage === "find" || yStage === "return"} /></div>
       </div>
 
+      <Button variant="ghost" title="Daily and weekly missions" aria-label="Open missions" onClick={() => setOverlay("missions")} className="glass absolute right-3 top-40 h-12 w-12 rounded-full"><Award className="h-5 w-5" /></Button>
+      {overlay === "missions" && <Sheet kicker="Town challenges" title="Daily & weekly missions" onClose={() => setOverlay(null)}><Missions /></Sheet>}
       {/* Controls */}
       <div className="pointer-events-none absolute inset-x-0 bottom-24 flex items-end justify-between px-5 md:bottom-8">
         <div className="pointer-events-auto md:hidden"><Joystick /></div>
         <p className="glass hidden rounded-full px-4 py-2 text-xs text-ivory/80 md:block">Move <kbd className="font-bold">WASD</kbd> / arrows · Interact <kbd className="font-bold">E</kbd></p>
         <Button variant="ghost" onClick={interact} disabled={!near} aria-label={near?.label ?? "Nothing nearby to interact with"}
           className={`pointer-events-auto flex min-h-16 items-center gap-2 rounded-full px-5 font-display text-lg font-bold shadow-soft transition-all duration-300 ${near ? "translate-y-0 bg-ivory text-charcoal opacity-100" : "translate-y-4 opacity-0"}`}>
-          {near && ["mochi", "sora", "tetsu", "yuzu"].includes(near.id) ? <MessageCircle className="h-5 w-5" /> : near ? <BookOpen className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
+          {near && ["mochi", "sora", "tetsu", "yuzu", "ren", "hana"].includes(near.id) ? <MessageCircle className="h-5 w-5" /> : near ? <BookOpen className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
           {near?.label ?? ""}<kbd className="ml-1 hidden rounded bg-charcoal px-1.5 text-xs text-ivory md:inline">E</kbd>
         </Button>
       </div>
@@ -144,7 +150,7 @@ function Explore() {
           <CafeQuiz onComplete={cafeDone} />
         </Sheet>
       )}
-      {(["tetsu", "yuzu"] as const).map((id) => {
+      {(["tetsu", "yuzu", "ren", "hana"] as const).map((id) => {
         const quest = TOWN_QUESTS[id], qStage = townQuestStage(p, id);
         const character = COLLECTIBLES.find((c) => c.id === id);
         if (!character) return null;

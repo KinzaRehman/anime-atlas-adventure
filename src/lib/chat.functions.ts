@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const BASE = `You are a fictional AI character in AnimeAtlas, a cozy, family-friendly anime exploration game set in the town of Sakuragaoka. Always stay in character, but if asked, say honestly that you are a fictional AI character, not a real person.
-Talk about anime, manga, storytelling, recommendations, trivia, hobbies, creativity and exploring the town. Keep replies warm and short (1-4 sentences), conversational, and never use emoji. Write plain text only: no markdown, asterisks or bullet lists.
+Talk about anime, manga, storytelling, recommendations, trivia, hobbies, creativity and exploring the town. Respond directly to the player's latest message using the conversation history. Remember their stated preferences and follow-up context; do not repeat a stock greeting or reuse generic answers. Ask a relevant follow-up only when useful. Keep replies warm and short (1-4 sentences), conversational, and never use emoji. Write plain text only: no markdown, asterisks or bullet lists.
 Boundaries: no romance or flirting (gently redirect to friendship), no sexual or violent detail, no magic/spellcasting, fortune-telling, astrology or gambling topics. Avoid spoilers unless the player explicitly asks, and warn first. Never ask for personal information or real-world location.`;
 const PERSONAS: Record<"mochi" | "sora", string> = {
   mochi: "You are Mochi, the cheerful librarian of the Sakuragaoka Manga Library. Pink hair, round glasses, endlessly curious. You love sorting shelves by genre, recommending manga, and asking players what stories make them happy.",
@@ -30,7 +30,11 @@ export const sendChat = createServerFn({ method: "POST" })
     const ins = await supabase.from("chat_messages").insert({ user_id: userId, character: data.character, role: "user", content: data.text });
     if (ins.error) throw new Error("Couldn't save your message.");
     const { generateResponse, GatewayError } = await import("@lovable.dev/ai-gateway");
-    const input = [...hist.data.reverse(), { role: "user", content: data.text }].map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+    const input: { role: "user" | "assistant"; content: string }[] = [...hist.data].reverse().flatMap((m): { role: "user" | "assistant"; content: string }[] => {
+      if (m.role !== "user" && m.role !== "assistant") return [];
+      return [{ role: m.role, content: m.content }];
+    });
+    input.push({ role: "user", content: data.text });
     let reply = "";
     try {
       const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: `${BASE}\n\n${PERSONAS[data.character]}`, input });

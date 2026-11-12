@@ -9,6 +9,11 @@ import arcadeImg from "@/assets/world/arcade.webp";
 import plazaImg from "@/assets/world/plaza.webp";
 import tetsuImg from "@/assets/world/tetsu.webp";
 import yuzuImg from "@/assets/world/yuzu.webp";
+import renImg from "@/assets/world/ren.webp";
+import hanaImg from "@/assets/world/hana.webp";
+import workshopImg from "@/assets/world/workshop.webp";
+import studioImg from "@/assets/world/studio.webp";
+import { WORKSHOP, REN, STUDIO, HANA } from "./world";
 import { bus } from "./bus";
 import { ARCADE, BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, PLAZA, SORA, SPAWN, TETSU, WORLD, YUZU } from "./world";
 
@@ -19,7 +24,7 @@ export class TownScene extends Phaser.Scene {
   player!: Phaser.GameObjects.Image;
   private shadow!: Phaser.GameObjects.Ellipse;
   private mochi!: Phaser.GameObjects.Image;
-  private markers: Partial<Record<"mochi" | "sora" | "tetsu" | "yuzu", Phaser.GameObjects.Container>> = {};
+  private markers: Partial<Record<"mochi" | "sora" | "tetsu" | "yuzu" | "ren" | "hana", Phaser.GameObjects.Container>> = {};
   private vel = new Phaser.Math.Vector2();
   private keys!: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
   private walkT = 0;
@@ -40,6 +45,8 @@ export class TownScene extends Phaser.Scene {
     this.load.image("plaza", plazaImg);
     this.load.image("tetsu", tetsuImg);
     this.load.image("yuzu", yuzuImg);
+    this.load.image("ren", renImg); this.load.image("hana", hanaImg);
+    this.load.image("workshop", workshopImg); this.load.image("studio", studioImg);
   }
 
   create() {
@@ -68,11 +75,12 @@ export class TownScene extends Phaser.Scene {
     if (!this.reduced) this.tweens.add({ targets: sora, y: SORA.y - 3, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.markers.sora = this.makeMarker(SORA.x, SORA.y - 215).setVisible(false);
 
-    for (const [key, spot] of [["arcade", ARCADE], ["plaza", PLAZA]] as const) {
-      const building = this.add.image(spot.x, spot.y + 140, key).setOrigin(0.5, 1);
-      building.setScale(spot.w / building.width).setDepth(spot.y + 140);
+    for (const [key, spot] of [["arcade", ARCADE], ["plaza", PLAZA], ["workshop", WORKSHOP], ["studio", STUDIO]] as const) {
+      const offset = key === "workshop" || key === "studio" ? 0 : 140;
+      const building = this.add.image(spot.x, spot.y + offset, key).setOrigin(0.5, 1);
+      building.setScale(spot.w / building.width).setDepth(spot.y + offset);
     }
-    for (const [id, spot, width] of [["tetsu", TETSU, 58], ["yuzu", YUZU, 56]] as const) {
+    for (const [id, spot, width] of [["tetsu", TETSU, 58], ["yuzu", YUZU, 56], ["ren", REN, 70], ["hana", HANA, 65]] as const) {
       this.add.ellipse(spot.x, spot.y - 4, 52, 15, 0x24212a, 0.25).setDepth(spot.y - 1);
       const npc = this.add.image(spot.x, spot.y, id).setOrigin(0.5, 1).setDisplaySize(width, 190).setDepth(spot.y);
       if (!this.reduced) this.tweens.add({ targets: npc, y: spot.y - 3, duration: 1200, yoyo: true, repeat: -1, ease: "Sine.inOut" });
@@ -96,9 +104,10 @@ export class TownScene extends Phaser.Scene {
     this.cameras.main.fadeIn(600, 246, 240, 230);
 
     const kb = this.input.keyboard;
-    if (!kb) return;
-    this.keys = kb.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT") as TownScene["keys"];
-    kb.removeCapture("W,A,S,D,SPACE"); // keep typing in inputs working
+    if (kb) {
+      this.keys = kb.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT") as TownScene["keys"];
+      kb.removeCapture("W,A,S,D,SPACE");
+    }
     bus.emit("ready", true);
   }
 
@@ -112,7 +121,7 @@ export class TownScene extends Phaser.Scene {
     return c;
   }
 
-  setMarker(id: "mochi" | "sora" | "tetsu" | "yuzu", visible: boolean) { this.markers[id]?.setVisible(visible); }
+  setMarker(id: "mochi" | "sora" | "tetsu" | "yuzu" | "ren" | "hana", visible: boolean) { this.markers[id]?.setVisible(visible); }
 
   celebrate(x: number, y: number) {
     if (this.reduced) return;
@@ -124,7 +133,7 @@ export class TownScene extends Phaser.Scene {
   private blocked(x: number, y: number) {
     if (x < 30 || y < 120 || x > WORLD.w - 30 || y > WORLD.h - 10) return true;
     if (Math.hypot(x - MOCHI.x, (y - MOCHI.y) * 2) < 40 || Math.hypot(x - SORA.x, (y - SORA.y) * 2) < 40) return true;
-    if ([TETSU, YUZU].some((npc) => Math.hypot(x - npc.x, (y - npc.y) * 2) < 40)) return true;
+    if ([TETSU, YUZU, REN, HANA].some((npc) => Math.hypot(x - npc.x, (y - npc.y) * 2) < 40)) return true;
     return BLOCKERS.some(([bx, by, bw, bh]) => x > bx && x < bx + bw && y > by && y < by + bh);
   }
 
@@ -132,8 +141,12 @@ export class TownScene extends Phaser.Scene {
     const dt = Math.min(dms / 1000, 0.05);
     let ix = bus.input.x, iy = bus.input.y;
     const k = this.keys;
-    if (k.A.isDown || k.LEFT.isDown) ix = -1; if (k.D.isDown || k.RIGHT.isDown) ix = 1;
-    if (k.W.isDown || k.UP.isDown) iy = -1; if (k.S.isDown || k.DOWN.isDown) iy = 1;
+    if (k) {
+      const horizontal = Number(k.D.isDown || k.RIGHT.isDown) - Number(k.A.isDown || k.LEFT.isDown);
+      const vertical = Number(k.S.isDown || k.DOWN.isDown) - Number(k.W.isDown || k.UP.isDown);
+      if (k.D.isDown || k.RIGHT.isDown || k.A.isDown || k.LEFT.isDown) ix = horizontal;
+      if (k.S.isDown || k.DOWN.isDown || k.W.isDown || k.UP.isDown) iy = vertical;
+    }
     if (bus.paused) { ix = 0; iy = 0; }
     const len = Math.hypot(ix, iy); if (len > 1) { ix /= len; iy /= len; }
     const blend = 1 - Math.exp(-ACCEL * dt);
@@ -160,6 +173,10 @@ export class TownScene extends Phaser.Scene {
       { id: "arcade", label: "Enter Trivia Arcade", x: ARCADE.door.x, y: ARCADE.door.y },
       { id: "yuzu", label: "Talk to Yuzu", x: YUZU.x, y: YUZU.y },
       { id: "plaza", label: "Enter Community Pavilion", x: PLAZA.door.x, y: PLAZA.door.y },
+      { id: "ren", label: "Talk to Ren", x: REN.x, y: REN.y },
+      { id: "workshop", label: "Enter Bicycle Workshop", x: WORKSHOP.door.x, y: WORKSHOP.door.y },
+      { id: "hana", label: "Talk to Hana", x: HANA.x, y: HANA.y },
+      { id: "studio", label: "Enter Town Art Studio", x: STUDIO.door.x, y: STUDIO.door.y },
     ] as const;
     let best: (typeof spots)[number] | null = null, bd = INTERACT_RADIUS;
     for (const sp of spots) { const d = Math.hypot(p.x - sp.x, p.y - sp.y); if (d < bd) { bd = d; best = sp; } }

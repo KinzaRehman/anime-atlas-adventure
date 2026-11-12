@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { EyeOff, Heart, MessageSquare, Pencil, Plus, Search, Trash2 } from "lucide-react";
@@ -7,6 +7,8 @@ import { useUser } from "@/lib/session";
 import { addComment, deleteComment, deletePost, FANDOMS, getPoll, listComments, listPosts, savePost, setLike, vote, type CommentRow, type PostRow } from "@/lib/community";
 import { addXp, useProgress } from "@/lib/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { CommunityInbox, ModerationQueue, ReportControl } from "@/components/community/Safety";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/fandoms")({
   head: () => ({ meta: [
@@ -27,6 +29,9 @@ function SignInCta({ what }: { what: string }) {
 
 function Fandoms() {
   const user = useUser();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const signOut = async () => { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); void navigate({ to: "/auth", replace: true }); };
   const posts = useQuery({ queryKey: ["posts"], queryFn: listPosts });
   const [fandom, setFandom] = useState("All");
   const [q, setQ] = useState("");
@@ -42,8 +47,9 @@ function Fandoms() {
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Community Plaza</p><h1 className="font-display text-3xl font-bold">Fandom discussions</h1></div>
         {user ? <div className="flex items-center gap-2">
+            <CommunityInbox uid={user.id} /><ModerationQueue uid={user.id} />
             <button onClick={() => setEditing("new")} className="btn-primary inline-flex min-h-11 items-center gap-2"><Plus className="h-4 w-4" />New post</button>
-            <button onClick={() => supabase.auth.signOut()} className="min-h-11 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground">Sign out</button>
+            <Button variant="ghost" onClick={signOut}>Sign out</Button>
           </div> : <SignInCta what="join in" />}
       </header>
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
@@ -96,7 +102,7 @@ function PostCard({ p, uid, onEdit }: { p: PostRow; uid: string | null; onEdit: 
   const [open, setOpen] = useState(false);
   const [reveal, setReveal] = useState(false);
   const liked = !!uid && p.post_likes.some((l) => l.user_id === uid);
-  const like = useMutation({ mutationFn: () => setLike(uid!, p.id, !liked), onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }), onError: (e: Error) => toast.error(e.message) });
+  const like = useMutation({ mutationFn: () => { if (!uid) throw new Error("Sign in to like posts."); return setLike(uid, p.id, !liked); }, onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }), onError: (e: Error) => toast.error(e.message) });
   const del = useMutation({ mutationFn: () => deletePost(p.id), onSuccess: () => { void qc.invalidateQueries({ queryKey: ["posts"] }); toast.success("Post deleted"); }, onError: (e: Error) => toast.error(e.message) });
   const count = p.comments[0]?.count ?? 0;
   return (
@@ -110,6 +116,7 @@ function PostCard({ p, uid, onEdit }: { p: PostRow; uid: string | null; onEdit: 
       {p.spoiler && (reveal ? <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-lavender/50 p-3">{p.spoiler}</p>
         : <button onClick={() => setReveal(true)} className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-charcoal font-semibold text-ivory"><EyeOff className="h-4 w-4" />Spoiler: tap to reveal</button>)}
       <div className="mt-3 flex flex-wrap items-center gap-1">
+        <ReportControl uid={uid} kind="post" id={p.id} />
         <button disabled={!uid || like.isPending} onClick={() => like.mutate()} aria-pressed={liked} aria-label={`${liked ? "Unlike" : "Like"} (${p.post_likes.length})`}
           className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-semibold ${liked ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
           <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />{p.post_likes.length}</button>
@@ -146,6 +153,7 @@ function CommentItem({ c, kids, uid, postId, onChange, nested }: { c: CommentRow
       <p className="text-sm"><span className="font-semibold">{who(c)}</span> <span className="text-muted-foreground">· {ago(c.created_at)}</span></p>
       <p className="whitespace-pre-wrap">{c.body}</p>
       <div className="flex gap-1 text-sm">
+        <ReportControl uid={uid} kind="comment" id={c.id} />
         {uid && !nested && <button onClick={() => setReply(!reply)} className="min-h-9 px-1 font-semibold text-muted-foreground hover:text-foreground">Reply</button>}
         {uid === c.author_id && <button onClick={() => del.mutate()} className="min-h-9 px-1 font-semibold text-destructive">Delete</button>}
       </div>
@@ -172,17 +180,20 @@ function PollCard({ uid }: { uid: string | null }) {
   const prog = useProgress();
   const poll = useQuery({ queryKey: ["poll"], queryFn: getPoll });
   const m = useMutation({
-    mutationFn: (i: number) => vote(uid!, poll.data!.id, i),
+    mutationFn: (i: number) => { if (!uid || !poll.data) throw new Error("Sign in to vote."); return vote(uid, poll.data.id, i); },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["poll"] }); if (prog.vote === null) addXp(20, () => ({ vote: 0 })); },
     onError: (e: Error) => toast.error(e.message),
   });
-  if (!poll.data) return <div className="paper h-56 animate-pulse rounded-3xl" />;
+  if (poll.isLoading) return <div className="paper h-56 animate-pulse rounded-3xl" />;
+  if (poll.error) return <p role="alert">Couldn't load the poll.</p>;
+  if (!poll.data) return <p className="text-sm text-muted-foreground">No community poll right now.</p>;
   const d = poll.data;
   const mine = d.votes.find((v) => v.user_id === uid)?.option_index;
   const total = d.votes.length;
   const show = mine !== undefined || !uid;
   return (
     <section className="paper rounded-3xl p-4" aria-labelledby="poll-q">
+      <div className="flex justify-end"><ReportControl uid={uid} kind="poll" id={d.id} /></div>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Community poll</p>
       <h2 id="poll-q" className="font-display text-lg font-bold">{d.question}</h2>
       <div className="mt-3 space-y-2">

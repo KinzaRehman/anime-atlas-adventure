@@ -15,6 +15,20 @@
       "when": 1794502161964,
       "tag": "0001_create_chat_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794512474123,
+      "tag": "0002_community_reports_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794512689755,
+      "tag": "0003_enforce_hidden_community_content",
+      "breakpoints": true
     }
   ]
 }

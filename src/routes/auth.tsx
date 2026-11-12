@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useUser } from "@/lib/session";
+import { Button } from "@/components/ui/button";
+import { Mail, LockKeyhole, UserRound } from "lucide-react";
+import mochi from "@/assets/char-mochi.jpg";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { redirect?: string | undefined } => { const r = s["redirect"]; return { redirect: typeof r === "string" && r.startsWith("/") && !r.startsWith("//") ? r : undefined }; },
@@ -21,47 +24,54 @@ function AuthPage() {
   const to = redirect ?? "/fandoms";
   const nav = useNavigate();
   const user = useUser();
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const [mode, setMode] = useState<"in" | "up" | "reset">("in");
   const [email, setEmail] = useState(""); const [pw, setPw] = useState(""); const [name, setName] = useState("");
   const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false);
   useEffect(() => { if (user) void nav({ to, replace: true }); }, [user, nav, to]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setMsg("");
-    if (mode === "in") {
+    if (mode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
+      setMsg(error ? error.message : "If an account exists, a reset link is on its way. Check your email.");
+    } else if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
       if (error) setMsg(error.message);
     } else {
-      const { error } = await supabase.auth.signUp({ email, password: pw, options: { emailRedirectTo: window.location.origin + to, data: { display_name: name.trim() } } });
+      const { error } = await supabase.auth.signUp({ email, password: pw, options: { emailRedirectTo: window.location.origin + "/auth", data: { display_name: name.trim() } } });
       setMsg(error ? error.message : "Check your email to confirm your account, then sign in.");
     }
     setBusy(false);
   };
-  const google = async () => {
+  const google = async (provider: "google" | "lovable") => {
     sessionStorage.setItem("aa-after-auth", to);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/auth" });
-    if (r.error) setMsg("Google sign-in didn't work. Please try again.");
+    const r = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth" });
+    if (r.error) setMsg("Sign-in didn't work. Please try again.");
   };
   useEffect(() => { const s = sessionStorage.getItem("aa-after-auth"); if (user && s) { sessionStorage.removeItem("aa-after-auth"); void nav({ to: s, replace: true }); } }, [user, nav]);
 
   const field = "min-h-12 w-full rounded-xl border border-border bg-card px-3 focus:outline-none focus:ring-2 focus:ring-ring";
   return (
-    <div className="mx-auto max-w-sm space-y-5 py-6">
-      <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Community Plaza</p>
-        <h1 className="font-display text-3xl font-bold">{mode === "in" ? "Welcome back" : "Join the plaza"}</h1>
-        <p className="text-sm text-muted-foreground">An account lets you post, comment, like and vote.</p></div>
-      <button type="button" onClick={google} className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full border border-[#747775] bg-[#FFFFFF] px-3 text-sm font-medium text-[#1F1F1F]">{G}Continue with Google</button>
-      <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
-      <form onSubmit={submit} className="space-y-3">
-        {mode === "up" && <label className="block text-sm font-semibold">Display name<input required maxLength={40} value={name} onChange={(e) => setName(e.target.value)} className={field} /></label>}
-        <label className="block text-sm font-semibold">Email<input required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} /></label>
-        <label className="block text-sm font-semibold">Password<input required type="password" minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} value={pw} onChange={(e) => setPw(e.target.value)} className={field} /></label>
-        <button disabled={busy} className="btn-primary min-h-12 w-full disabled:opacity-50">{busy ? "One moment…" : mode === "in" ? "Sign in" : "Create account"}</button>
+    <div className="mx-auto max-w-md pb-28 pt-6">
+      <header className="mb-6 text-center">
+        <img src={mochi} alt="Mochi, the Manga Librarian" width={816} height={816} className="mx-auto mb-4 h-24 w-24 rounded-full object-cover" />
+        <p className="text-xs font-bold uppercase text-primary">AnimeAtlas</p>
+        <h1 className="mt-1 font-display text-3xl font-bold">{mode === "up" ? "Join Sakuragaoka" : mode === "reset" ? "Reset your password" : "Welcome back"}</h1>
+      </header>
+      {mode !== "reset" && <div className="mb-5 grid gap-3">
+        <Button variant="outline" className="min-h-12 rounded-xl" disabled={busy} onClick={() => google("google")}>{G}Continue with Google</Button>
+        <Button variant="outline" className="min-h-12 rounded-xl" disabled={busy} onClick={() => google("lovable")}><UserRound className="h-4 w-4" />Continue with Lovable</Button>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or with email<span className="h-px flex-1 bg-border" /></div>
+      </div>}
+      <form onSubmit={submit} className="space-y-4">
+        {mode === "up" && <label className="block text-sm font-semibold">Display name<input required maxLength={40} autoComplete="nickname" value={name} onChange={(e) => setName(e.target.value)} className={field} /></label>}
+        <label className="block text-sm font-semibold"><span className="mb-1 flex items-center gap-2"><Mail className="h-4 w-4" />Email</span><input required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} /></label>
+        {mode !== "reset" && <label className="block text-sm font-semibold"><span className="mb-1 flex items-center gap-2"><LockKeyhole className="h-4 w-4" />Password</span><input required type="password" minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} value={pw} onChange={(e) => setPw(e.target.value)} className={field} /></label>}
+        {mode === "in" && <Button type="button" variant="link" className="px-0" onClick={() => { setMode("reset"); setMsg(""); }}>Forgot password?</Button>}
+        <Button disabled={busy} className="min-h-12 w-full rounded-xl">{busy ? "One moment…" : mode === "in" ? "Sign in" : mode === "up" ? "Create account" : "Send reset link"}</Button>
       </form>
-      {msg && <p role="status" className="rounded-xl bg-muted p-3 text-sm font-semibold">{msg}</p>}
-      <button onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="w-full text-sm font-semibold text-primary underline-offset-4 hover:underline">
-        {mode === "in" ? "New here? Create an account" : "Already have an account? Sign in"}
-      </button>
+      {msg && <p role="status" className="mt-4 rounded-lg bg-muted p-3 text-sm font-semibold">{msg}</p>}
+      <Button variant="link" onClick={() => { setMode(mode === "in" ? "up" : "in"); setMsg(""); }} className="mt-3 w-full">{mode === "in" ? "New here? Create an account" : "Back to sign in"}</Button>
     </div>
   );
 }

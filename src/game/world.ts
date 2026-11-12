@@ -9,6 +9,10 @@ export const ARCADE = { x: 320, y: 1100, door: { x: 380, y: 1240 }, w: 400 };
 export const TETSU = { x: 540, y: 1280 };
 export const PLAZA = { x: 1620, y: 1120, door: { x: 1560, y: 1260 }, w: 400 };
 export const YUZU = { x: 1340, y: 1260 };
+export const WORKSHOP = { x: 300, y: 1850, door: { x: 390, y: 1840 }, w: 330 };
+export const REN = { x: 530, y: 1790 };
+export const STUDIO = { x: 1000, y: 1880, door: { x: 1040, y: 1840 }, w: 330 };
+export const HANA = { x: 1230, y: 1810 };
 export const INTERACT_RADIUS = 110;
 // Rectangles the player can't enter: [x, y, w, h]
 export const BLOCKERS: [number, number, number, number][] = [
@@ -18,4 +22,5 @@ export const BLOCKERS: [number, number, number, number][] = [
   [140, 850, 360, 300],          // Arcade body, entrance clear below
   [1450, 950, 340, 240],         // Pavilion body, entrance clear below
   [0, 1400, 360, 200], [790, 1400, 1130, 220], // stream, bridge gap at x 360-790
+  [140, 1610, 260, 190], [850, 1660, 280, 130],
 ];

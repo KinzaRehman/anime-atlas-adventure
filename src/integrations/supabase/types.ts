@@ -98,6 +98,87 @@ export type Database = {
           },
         ]
       }
+      community_hidden: {
+        Row: {
+          created_at: string
+          moderator_id: string
+          target_id: string
+          target_kind: string
+        }
+        Insert: {
+          created_at?: string
+          moderator_id: string
+          target_id: string
+          target_kind: string
+        }
+        Update: {
+          created_at?: string
+          moderator_id?: string
+          target_id?: string
+          target_kind?: string
+        }
+        Relationships: []
+      }
+      community_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          read_at: string | null
+          target_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          read_at?: string | null
+          target_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          read_at?: string | null
+          target_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string
+          status: string
+          target_id: string
+          target_kind: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id?: string
+          status?: string
+          target_id: string
+          target_kind: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+          target_id?: string
+          target_kind?: string
+        }
+        Relationships: []
+      }
       poll_votes: {
         Row: {
           created_at: string
@@ -247,12 +328,31 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          role: string
+          user_id: string
+        }
+        Insert: {
+          role: string
+          user_id: string
+        }
+        Update: {
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_community_moderator: { Args: never; Returns: boolean }
+      resolve_community_report: {
+        Args: { decision: string; report_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

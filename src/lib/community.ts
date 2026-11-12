@@ -7,8 +7,15 @@ export const FANDOMS = ["General", "Slice of Life", "Sports", "Mecha", "Mystery"
 
 const must = <T,>(r: { data: T | null; error: { message: string } | null }) => { if (r.error) throw new Error(r.error.message); return r.data as T; };
 
-export const listPosts = async () => must(await supabase.from("posts").select("*, profiles!posts_author_id_fkey(display_name), post_likes(user_id), comments(count)").order("created_at", { ascending: false }).limit(100)) as unknown as PostRow[];
-export const listComments = async (postId: string) => must(await supabase.from("comments").select("*, profiles!comments_author_id_fkey(display_name)").eq("post_id", postId).order("created_at")) as unknown as CommentRow[];
+async function hiddenIds(kind: string) { const r = await supabase.from("community_hidden").select("target_id").eq("target_kind", kind); if (r.error) throw new Error(r.error.message); return new Set(r.data.map((r) => r.target_id)); }
+export const listPosts = async () => {
+  const [rows, hidden] = await Promise.all([supabase.from("posts").select("*, profiles!posts_author_id_fkey(display_name), post_likes(user_id), comments(count)").order("created_at", { ascending: false }).limit(100), hiddenIds("post")]);
+  return (must(rows) as unknown as PostRow[]).filter((p) => !hidden.has(p.id));
+};
+export const listComments = async (postId: string) => {
+  const [rows, hidden] = await Promise.all([supabase.from("comments").select("*, profiles!comments_author_id_fkey(display_name)").eq("post_id", postId).order("created_at"), hiddenIds("comment")]);
+  return (must(rows) as unknown as CommentRow[]).filter((p) => !hidden.has(p.id));
+};
 export const savePost = async (uid: string, p: { id?: string | undefined; fandom: string; title: string; body: string; spoiler: string | null }) =>
   p.id ? must(await supabase.from("posts").update({ fandom: p.fandom, title: p.title, body: p.body, spoiler: p.spoiler, updated_at: new Date().toISOString() }).eq("id", p.id).select())
        : must(await supabase.from("posts").insert({ author_id: uid, fandom: p.fandom, title: p.title, body: p.body, spoiler: p.spoiler }).select());
@@ -22,6 +29,7 @@ export const getPoll = async (): Promise<Poll | null> => {
   const pr = await supabase.from("polls").select("id, question, options").order("created_at").limit(1).maybeSingle();
   if (pr.error) throw new Error(pr.error.message);
   if (!pr.data) return null;
+  if ((await hiddenIds("poll")).has(pr.data.id)) return null;
   const vr = await supabase.from("poll_votes").select("user_id, option_index").eq("poll_id", pr.data.id);
   if (vr.error) throw new Error(vr.error.message);
   return { ...pr.data, votes: vr.data ?? [] };

@@ -1,10 +1,11 @@
 // Progress store backed by localStorage. Swap load/save for API calls later.
 import { useSyncExternalStore } from "react";
 import { COLLECTIBLES, BADGES, XP_PER_LEVEL } from "@/data/game";
+import { MISSIONS, advanceMission, missionPeriod, type MissionState } from "@/data/missions";
 
-export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; }
+export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; }
 const KEY = "animeatlas-progress-v1";
-const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [] });
+const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {} });
 let state: Progress = fresh();
 let loaded = false;
 const subs = new Set<() => void>();
@@ -22,8 +23,8 @@ function rules(s: Progress): { badges: string[]; chars: string[] } {
   if (s.chatted.length >= 2) b.push("friendly");
   if (s.done.includes("trivia5") || s.done.includes("cafe")) b.push("trivia-star");
   if (s.done.includes("sora-turnin")) c.push("sora");
-  for (const id of ["tetsu", "yuzu"]) {
-    const activity = id === "tetsu" ? "arcade" : "plaza";
+  for (const id of ["tetsu", "yuzu", "ren", "hana"]) {
+    const activity = id === "tetsu" ? "arcade" : id === "yuzu" ? "plaza" : id === "ren" ? "workshop" : "studio";
     if (s.done.includes("sora-turnin") && s.done.includes(`${id}-met`) && s.done.includes(activity) && s.done.includes(`${id}-turnin`)) c.push(id);
   }
   if (s.vote !== null) b.push("voice");
@@ -49,6 +50,18 @@ export function update(fn: (s: Progress) => Partial<Progress>) {
   emit();
 }
 export const addXp = (n: number, extra: (s: Progress) => Partial<Progress> = () => ({})) => update((s) => ({ ...extra(s), xp: s.xp + n }));
+export function recordMission(event: string) {
+  update((s) => ({ missions: Object.fromEntries(MISSIONS.map((mission) => [mission.id, advanceMission(mission, s.missions[mission.id], event)])) }));
+}
+export function claimMission(id: string) {
+  const mission = MISSIONS.find((m) => m.id === id);
+  if (!mission) return;
+  update((s) => {
+    const saved = s.missions[id];
+    if (!saved || saved.claimed || saved.period !== missionPeriod(mission.period) || saved.steps.length !== mission.steps.length) return {};
+    return { xp: s.xp + mission.xp, badges: [...new Set([...s.badges, mission.badge])], missions: { ...s.missions, [id]: { ...saved, claimed: true } } };
+  });
+}
 export function reset() { state = fresh(); unlockQueue = []; emit(); }
 export function popUnlock() { const u = unlockQueue.shift(); if (u) subs.forEach((f) => f()); return u; }
 export const peekUnlock = () => unlockQueue[0];
@@ -66,9 +79,9 @@ export const questStage = (s: Progress): QuestStage =>
 export const soraStage = (s: Progress): QuestStage | "locked" =>
   !s.done.includes("mochi-turnin") ? "locked" : s.done.includes("sora-turnin") ? "done" : !s.done.includes("sora-met") ? "find" : s.done.includes("cafe") ? "return" : "library";
 
-export function townQuestStage(s: Progress, id: "tetsu" | "yuzu"): "locked" | "find" | "activity" | "return" | "done" {
+export function townQuestStage(s: Progress, id: "tetsu" | "yuzu" | "ren" | "hana"): "locked" | "find" | "activity" | "return" | "done" {
   if (!s.done.includes("sora-turnin")) return "locked";
   if (!s.done.includes(`${id}-met`)) return "find";
-  if (!s.done.includes(id === "tetsu" ? "arcade" : "plaza")) return "activity";
+  if (!s.done.includes(id === "tetsu" ? "arcade" : id === "yuzu" ? "plaza" : id === "ren" ? "workshop" : "studio")) return "activity";
   return s.done.includes(`${id}-turnin`) ? "done" : "return";
 }

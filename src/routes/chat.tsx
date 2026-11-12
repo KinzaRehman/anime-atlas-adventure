@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/chat.functions";
 import { useUser } from "@/lib/session";
 import { addXp, useProgress } from "@/lib/progress";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [
@@ -41,7 +42,7 @@ function Chat() {
         </div>
         <p className="mt-3 text-xs text-muted-foreground">Mochi and Sora are fictional AI characters, not real people. Replies are AI-generated.</p>
       </div>
-      {user ? <Conversation key={who} who={who} uid={user.id} /> : (
+      {user ? <Conversation key={`${user.id}:${who}`} who={who} uid={user.id} /> : (
         <section className="paper grid place-items-center rounded-3xl p-10 text-center">
           <div><img src={IMG[who]} alt="" width={816} height={816} className="mx-auto h-24 w-24 rounded-full object-cover" />
             <p className="mt-3 font-display text-xl font-bold">Sign in to chat with {CHAT[who].name}</p>
@@ -61,8 +62,8 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
   const p = useProgress();
   const key = ["chat", uid, who];
   const hist = useQuery({ queryKey: key, queryFn: async () => {
-    const r = await supabase.from("chat_messages").select("id, role, content, created_at").eq("character", who).order("created_at").limit(200);
-    if (r.error) throw new Error(r.error.message); return r.data as Msg[];
+    const r = await supabase.from("chat_messages").select("id, role, content, created_at").eq("user_id", uid).eq("character", who).order("created_at", { ascending: false }).limit(200);
+    if (r.error) throw new Error(r.error.message); return [...r.data].reverse() as Msg[];
   } });
   const [text, setText] = useState(""); const [pending, setPending] = useState<string | null>(null); const [err, setErr] = useState("");
   const input = useRef<HTMLTextAreaElement>(null); const end = useRef<HTMLDivElement>(null);
@@ -76,8 +77,11 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
       const r = await send({ data: { character: who, text: t } });
       if (!r.ok) setErr(r.error);
       else if (!p.chatted.includes(who)) addXp(25, (s) => ({ chatted: [...s.chatted, who] }));
-    } catch { setErr("Couldn't send. Please try again."); }
-    await qc.invalidateQueries({ queryKey: key }); setPending(null);
+    } catch { setErr("Couldn't send. Please try again."); setText((draft) => draft || t); }
+    finally {
+      try { await qc.invalidateQueries({ queryKey: key }); }
+      finally { setPending(null); }
+    }
   };
   const clear = async () => { if (!confirm(`Clear your chat with ${CHAT[who].name}?`)) return; await supabase.from("chat_messages").delete().eq("character", who); void qc.invalidateQueries({ queryKey: key }); };
   const msgs = hist.data ?? [];
@@ -87,12 +91,12 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
       <header className="flex items-center gap-3 border-b border-border p-3">
         <img src={IMG[who]} alt="" width={816} height={816} className="h-10 w-10 rounded-full object-cover" />
         <div className="flex-1"><p className="font-display font-bold">{CHAT[who].name}</p><p className="text-xs text-muted-foreground">{pending ? "typing…" : "Fictional AI character"}</p></div>
-        {msgs.length > 0 && <button onClick={clear} aria-label="Clear conversation" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground hover:text-foreground"><Trash2 className="h-4 w-4" /></button>}
+        {msgs.length > 0 && <Button type="button" variant="ghost" disabled={!!pending} onClick={clear} aria-label="Clear conversation" className="h-11 w-11 rounded-full text-muted-foreground hover:text-foreground"><Trash2 className="h-4 w-4" /></Button>}
       </header>
       <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
         {hist.isLoading && <p className="text-center text-sm text-muted-foreground">Loading your conversation…</p>}
         {hist.error && <p role="alert" className="text-center text-sm text-destructive">Couldn't load history.</p>}
-        {hist.data && msgs.length === 0 && !pending && <p className="py-8 text-center text-muted-foreground">{CHAT[who].nodes.start.text}<br /><span className="text-sm">Type anything to start chatting.</span></p>}
+        {hist.data && msgs.length === 0 && !pending && <div className="grid place-items-center py-8"><img src={IMG[who]} alt={CHAT[who].name} className="h-20 w-20 rounded-full object-cover" /></div>}
         {msgs.map((m) => <Bubble key={m.id} m={m} who={who} />)}
         {pending && <>
           <Bubble m={{ id: "p", role: "user", content: pending, created_at: new Date().toISOString() }} who={who} />
@@ -106,8 +110,8 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
         <textarea id="chat-input" ref={input} rows={1} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void go(); } }}
           placeholder={`Message ${CHAT[who].name}…`} className="max-h-32 min-h-12 flex-1 resize-none rounded-2xl border border-border bg-card px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring" />
-        <button aria-label="Send" disabled={!text.trim() || !!pending} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
-          {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}</button>
+        <Button type="submit" aria-label="Send" disabled={!text.trim() || !!pending} className="h-12 w-12 shrink-0 rounded-full disabled:opacity-40">
+          {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}</Button>
       </form>
     </section>
   );
