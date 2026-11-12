@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ground from "@/assets/world/ground.webp";
 import { bus } from "@/game/bus";
-import { ARCADE, CAFE, LIBRARY, MOCHI, PLAZA, SORA, TETSU, WORLD, YUZU, WORKSHOP, STUDIO, REN, HANA } from "@/game/world";
+import { ARCADE, CAFE, LIBRARY, MOCHI, PLAZA, SORA, TETSU, WORLD, YUZU, WORKSHOP, STUDIO, REN, HANA, GARDEN, PAPER, KAITO, NAMI } from "@/game/world";
 
 export function Minimap({ met, soraOpen, tetsuOpen, yuzuOpen }: { met: boolean; soraOpen: boolean; tetsuOpen: boolean; yuzuOpen: boolean }) {
   const [p, setP] = useState({ x: 0, y: 0 });
@@ -16,8 +16,8 @@ export function Minimap({ met, soraOpen, tetsuOpen, yuzuOpen }: { met: boolean; 
         <span className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-peach ring-2 ring-ivory" style={{ left: pc(CAFE.door.x, WORLD.w), top: pc(CAFE.door.y, WORLD.h) }} />
         <span className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-ivory ${soraOpen ? "bg-sakura animate-pulse" : "bg-lavender"}`} style={{ left: pc(SORA.x, WORLD.w), top: pc(SORA.y, WORLD.h) }} />
         <span className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold ring-2 ring-charcoal" style={{ left: pc(p.x, WORLD.w), top: pc(p.y, WORLD.h) }} />
-        {[ARCADE, PLAZA, WORKSHOP, STUDIO].map((spot, i) => <span key={i} className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-matcha ring-1 ring-ivory" style={{ left: pc(spot.door.x, WORLD.w), top: pc(spot.door.y, WORLD.h) }} />)}
-        {([{ spot: TETSU, open: tetsuOpen }, { spot: YUZU, open: yuzuOpen }, { spot: REN, open: true }, { spot: HANA, open: true }]).map(({ spot, open }, i) => <span key={i} className={`absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-ivory ${open ? "animate-pulse bg-sakura" : "bg-lavender"}`} style={{ left: pc(spot.x, WORLD.w), top: pc(spot.y, WORLD.h) }} />)}
+        {[ARCADE, PLAZA, WORKSHOP, STUDIO, GARDEN, PAPER].map((spot, i) => <span key={i} className="absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-matcha ring-1 ring-ivory" style={{ left: pc(spot.door.x, WORLD.w), top: pc(spot.door.y, WORLD.h) }} />)}
+        {([{ spot: TETSU, open: tetsuOpen }, { spot: YUZU, open: yuzuOpen }, { spot: REN, open: true }, { spot: HANA, open: true }, { spot: KAITO, open: true }, { spot: NAMI, open: true }]).map(({ spot, open }, i) => <span key={i} className={`absolute h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-ivory ${open ? "animate-pulse bg-sakura" : "bg-lavender"}`} style={{ left: pc(spot.x, WORLD.w), top: pc(spot.y, WORLD.h) }} />)}
       </div>
     </div>
   );

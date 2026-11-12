@@ -1,6 +1,6 @@
 # AnimeAtlas roadmap
 - [x] Phase 1: playable neighborhood (Phaser): avatar movement (WASD/arrows + touch joystick), follow camera, 1 interactive building (Manga Library), 1 discoverable character (Mochi), proximity prompts, unlock collectible card — verify desktop + mobile
-- [ ] Phase 2: six town characters and quests complete; detailed profile views and collection redesign remain
+- [ ] Phase 2: eight town characters and quests complete; detailed profile views and collection redesign remain
 - [x] Town expansion: Tetsu’s Trivia Arcade and Yuzu’s Community Pavilion, distinct quests, persistent cards; verified both from a fresh start on desktop and mobile-sized screens
 - [ ] Phase 3: server-generated typed chat and per-character history implemented; fresh signed-in verification awaits an account
 - [x] Phase 4: database-backed community (accounts, posts, comments, likes, polls)
@@ -14,3 +14,7 @@
 - [x] Community reporting, protected moderation queue, and stored reply/vote notifications implemented
 - [ ] Assign moderator and verify signed-in reporting, moderation, and notifications: blocked by no selected confirmed account
 - [x] Town expansion: Ren's Workshop and Hana's Art Studio added; quests and saved cards verified on desktop and mobile-sized screens
+- [x] Town expansion: Kaito's Greenhouse and Nami's Paper & Pages, original artwork, quests, and collectible cards; desktop and mobile encounter loops and reloads verified
+- [x] Chat shop: fixed-price explorer pins bought with earned XP, equipped titles in chat and town; purchase/reload browser checks and insufficient-XP tests passed
+- [ ] Requested Community test: sign in, post, flag, review moderation, and verify reply notification; requires an account and moderator access
+- [ ] Requested Mochi reward test: sign in with player's account, send a real chat, reload, and verify 25 XP in Profile; requires player's account

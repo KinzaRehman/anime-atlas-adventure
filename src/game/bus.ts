@@ -1,5 +1,5 @@
 // Tiny bridge between the Phaser scene and the React HUD (no React/Phaser imports).
-export type Target = { id: "mochi" | "library" | "sora" | "cafe" | "tetsu" | "arcade" | "yuzu" | "plaza" | "ren" | "workshop" | "hana" | "studio"; label: string } | null;
+export type Target = { id: "mochi" | "library" | "sora" | "cafe" | "tetsu" | "arcade" | "yuzu" | "plaza" | "ren" | "workshop" | "hana" | "studio" | "kaito" | "garden" | "nami" | "paper"; label: string } | null;
 type Events = { near: Target; pos: { x: number; y: number }; ready: true };
 type Fn<K extends keyof Events> = (v: Events[K]) => void;
 const listeners: { [K in keyof Events]?: Set<Fn<K>> } = {};

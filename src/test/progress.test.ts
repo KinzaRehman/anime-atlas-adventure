@@ -3,7 +3,7 @@ import { _testing, level, questStage, soraStage, townQuestStage } from "@/lib/pr
 import { TOWN_QUESTS } from "@/data/game";
 const f = _testing.fresh;
 describe("progress rules", () => {
-  for (const [id, activity, count] of [["tetsu", "arcade", 5], ["yuzu", "plaza", 3], ["ren", "workshop", 3], ["hana", "studio", 3]] as const) {
+  for (const [id, activity, count] of [["tetsu", "arcade", 5], ["yuzu", "plaza", 3], ["ren", "workshop", 3], ["hana", "studio", 3], ["kaito", "garden", 3], ["nami", "paper", 3]] as const) {
     it(`${id} has a distinct ${count}-card challenge`, () => {
       expect(TOWN_QUESTS[id].location).toBe(activity);
       expect(TOWN_QUESTS[id].questions).toHaveLength(count);

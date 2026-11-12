@@ -14,14 +14,15 @@ import { QuestChallenge } from "@/components/game/QuestChallenge";
 import { Button } from "@/components/ui/button";
 import { UnlockSequence } from "@/components/game/UnlockSequence";
 import { bus, type Target } from "@/game/bus";
-import { MOCHI, SORA, TETSU, YUZU, REN, HANA } from "@/game/world";
+import { MOCHI, SORA, TETSU, YUZU, REN, HANA, KAITO, NAMI } from "@/game/world";
 import type { TownScene } from "@/game/TownScene";
-import { COLLECTIBLES, MOCHI_LINES, SORA_LINES, TOWN_QUESTS, XP_PER_LEVEL, type TownFriend } from "@/data/game";
+import { COLLECTIBLES, MOCHI_LINES, SORA_LINES, TOWN_QUESTS, TOWN_FRIENDS, XP_PER_LEVEL, type TownFriend } from "@/data/game";
 import { addXp, level, questStage, soraStage, townQuestStage, useProgress, recordMission } from "@/lib/progress";
+import { SHOP_ITEMS } from "@/data/shop";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [
-    { title: "Explore Sakuragaoka | AnimeAtlas" }, { name: "description", content: "Explore six town locations, help original characters, complete daily and weekly missions, and earn collectible cards." },
+    { title: "Explore Sakuragaoka | AnimeAtlas" }, { name: "description", content: "Explore eight town locations, help original characters, complete daily and weekly missions, and earn collectible cards." },
     { property: "og:title", content: "Explore Sakuragaoka | AnimeAtlas" }, { property: "og:description", content: "A playable anime neighborhood." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
@@ -30,15 +31,17 @@ export const Route = createFileRoute("/explore")({
 
 const OBJECTIVE = { find: "Find someone by the fountain", library: "Sort the shelves at the Manga Library", return: "Return to Mochi" };
 const SORA_OBJ = { find: "Say hello to Sora outside the café", library: "Win Sora's Café Quiz", return: "Return to Sora", done: "", locked: "" };
-type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | "tetsu" | "yuzu" | "arcade" | "plaza" | "unlock-tetsu" | "unlock-yuzu" | "ren" | "hana" | "workshop" | "studio" | "unlock-ren" | "unlock-hana" | "missions";
+type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | TownFriend | "arcade" | "plaza" | "workshop" | "studio" | "garden" | "paper" | `unlock-${TownFriend}` | "missions";
 
 function Explore() {
   const p = useProgress();
+  const pin = SHOP_ITEMS.find((item) => item.id === p.equippedItem);
   const stage = questStage(p);
   const sStage = soraStage(p);
   const tStage = townQuestStage(p, "tetsu"), yStage = townQuestStage(p, "yuzu");
   const rStage = townQuestStage(p, "ren"), hStage = townQuestStage(p, "hana");
-  const objective = stage !== "done" ? OBJECTIVE[stage] : sStage !== "done" ? SORA_OBJ[sStage] : tStage !== "done" ? TOWN_QUESTS.tetsu.objective[tStage] : yStage !== "done" ? TOWN_QUESTS.yuzu.objective[yStage] : rStage !== "done" ? TOWN_QUESTS.ren.objective[rStage] : hStage !== "done" ? TOWN_QUESTS.hana.objective[hStage] : "All six friends collected. Enjoy the town!";
+  const nextFriend = TOWN_FRIENDS.find((id) => townQuestStage(p, id) !== "done");
+  const objective = stage !== "done" ? OBJECTIVE[stage] : sStage !== "done" ? SORA_OBJ[sStage] : nextFriend ? TOWN_QUESTS[nextFriend].objective[townQuestStage(p, nextFriend)] : `All ${COLLECTIBLES.length} friends collected. Enjoy the town!`;
   const [near, setNear] = useState<Target>(null);
   const [ready, setReady] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
@@ -47,14 +50,15 @@ function Explore() {
   useEffect(() => { const a = bus.on("near", setNear), b = bus.on("ready", () => setReady(true)); return () => { a(); b(); }; }, []);
   useEffect(() => { bus.paused = overlay !== null; document.body.toggleAttribute("data-game-overlay", overlay !== null); return () => { bus.paused = false; document.body.removeAttribute("data-game-overlay"); }; }, [overlay]);
   useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); scene.current?.setMarker("ren", rStage === "find" || rStage === "return"); scene.current?.setMarker("hana", hStage === "find" || hStage === "return"); }, [stage, sStage, tStage, yStage, rStage, hStage, ready]);
+  useEffect(() => { for (const id of ["kaito", "nami"] as const) { const q = townQuestStage(p, id); scene.current?.setMarker(id, q === "find" || q === "return"); } }, [p, ready]);
 
   const interact = useCallback(() => {
     if (!near || overlay) return;
     if (near.id === "mochi") setOverlay("dialogue");
     else if (near.id === "sora") setOverlay("sora");
-    else if (near.id === "tetsu" || near.id === "yuzu" || near.id === "ren" || near.id === "hana") setOverlay(near.id);
-    else if (near.id === "arcade" || near.id === "plaza" || near.id === "workshop" || near.id === "studio") {
-      const id = near.id === "arcade" ? "tetsu" : near.id === "plaza" ? "yuzu" : near.id === "workshop" ? "ren" : "hana";
+    else if (near.id === "tetsu" || near.id === "yuzu" || near.id === "ren" || near.id === "hana" || near.id === "kaito" || near.id === "nami") setOverlay(near.id);
+    else if (near.id === "arcade" || near.id === "plaza" || near.id === "workshop" || near.id === "studio" || near.id === "garden" || near.id === "paper") {
+      const id = near.id === "arcade" ? "tetsu" : near.id === "plaza" ? "yuzu" : near.id === "workshop" ? "ren" : near.id === "studio" ? "hana" : near.id === "garden" ? "kaito" : "nami";
       const qStage = townQuestStage(p, id);
       if (qStage === "locked" || qStage === "find") { setOverlay(id); return; }
       const building = near.id;
@@ -91,7 +95,7 @@ function Explore() {
     if (qStage === "find") addXp(10, (s) => ({ done: [...s.done, `${id}-met`] }));
     if (qStage === "return") {
       addXp(80, (s) => ({ done: [...s.done, `${id}-turnin`] }));
-      const spot = id === "tetsu" ? TETSU : id === "yuzu" ? YUZU : id === "ren" ? REN : HANA;
+      const spot = { tetsu: TETSU, yuzu: YUZU, ren: REN, hana: HANA, kaito: KAITO, nami: NAMI }[id];
       scene.current?.celebrate(spot.x, spot.y - 100);
       setOverlay(`unlock-${id}`); return;
     }
@@ -116,7 +120,7 @@ function Explore() {
         <div className="pointer-events-auto glass max-w-[62vw] rounded-2xl px-4 py-3 sm:max-w-sm">
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-gold font-display font-bold text-charcoal" aria-label={`Level ${level(p.xp)}`}>{level(p.xp)}</span>
-            <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{p.name}</p><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ivory/15"><div className="h-full rounded-full bg-sakura transition-all duration-700" style={{ width: `${pct}%` }} /></div></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{p.name}</p>{pin && <p className="text-xs text-sakura">{pin.title}</p>}<div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ivory/15"><div className="h-full rounded-full bg-sakura transition-all duration-700" style={{ width: `${pct}%` }} /></div></div>
             <span className="text-xs tabular-nums text-ivory/70">{p.xp} XP</span>
           </div>
           <p className="mt-3 border-t border-ivory/10 pt-2 text-xs uppercase tracking-[0.16em] text-ivory/50">Objective</p>
@@ -133,7 +137,7 @@ function Explore() {
         <p className="glass hidden rounded-full px-4 py-2 text-xs text-ivory/80 md:block">Move <kbd className="font-bold">WASD</kbd> / arrows · Interact <kbd className="font-bold">E</kbd></p>
         <Button variant="ghost" onClick={interact} disabled={!near} aria-label={near?.label ?? "Nothing nearby to interact with"}
           className={`pointer-events-auto flex min-h-16 items-center gap-2 rounded-full px-5 font-display text-lg font-bold shadow-soft transition-all duration-300 ${near ? "translate-y-0 bg-ivory text-charcoal opacity-100" : "translate-y-4 opacity-0"}`}>
-          {near && ["mochi", "sora", "tetsu", "yuzu", "ren", "hana"].includes(near.id) ? <MessageCircle className="h-5 w-5" /> : near ? <BookOpen className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
+          {near && ["mochi", "sora", ...TOWN_FRIENDS].includes(near.id) ? <MessageCircle className="h-5 w-5" /> : near ? <BookOpen className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
           {near?.label ?? ""}<kbd className="ml-1 hidden rounded bg-charcoal px-1.5 text-xs text-ivory md:inline">E</kbd>
         </Button>
       </div>
@@ -150,7 +154,7 @@ function Explore() {
           <CafeQuiz onComplete={cafeDone} />
         </Sheet>
       )}
-      {(["tetsu", "yuzu", "ren", "hana"] as const).map((id) => {
+      {TOWN_FRIENDS.map((id) => {
         const quest = TOWN_QUESTS[id], qStage = townQuestStage(p, id);
         const character = COLLECTIBLES.find((c) => c.id === id);
         if (!character) return null;

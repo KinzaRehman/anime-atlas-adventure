@@ -1,11 +1,12 @@
 // Progress store backed by localStorage. Swap load/save for API calls later.
 import { useSyncExternalStore } from "react";
-import { COLLECTIBLES, BADGES, XP_PER_LEVEL } from "@/data/game";
+import { COLLECTIBLES, BADGES, XP_PER_LEVEL, TOWN_FRIENDS, TOWN_QUESTS, type TownFriend } from "@/data/game";
 import { MISSIONS, advanceMission, missionPeriod, type MissionState } from "@/data/missions";
+import { SHOP_ITEMS } from "@/data/shop";
 
-export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; }
+export interface Progress { name: string; xp: number; badges: string[]; chars: string[]; visited: string[]; done: string[]; vote: number | null; walks: number; chatted: string[]; missions: Record<string, MissionState>; spentXp: number; items: string[]; equippedItem: string | null; }
 const KEY = "animeatlas-progress-v1";
-const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {} });
+const fresh = (): Progress => ({ name: "Traveler", xp: 0, badges: [], chars: [], visited: [], done: [], vote: null, walks: 0, chatted: [], missions: {}, spentXp: 0, items: [], equippedItem: null });
 let state: Progress = fresh();
 let loaded = false;
 const subs = new Set<() => void>();
@@ -15,6 +16,22 @@ let unlockQueue: Unlock[] = [];
 function load() { if (loaded || typeof window === "undefined") return; loaded = true; try { const r = localStorage.getItem(KEY); if (r) state = { ...fresh(), ...JSON.parse(r) }; } catch {} }
 function emit() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} subs.forEach((f) => f()); }
 export const level = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
+export const availableXp = (s: Progress) => Math.max(0, s.xp - s.spentXp);
+export function buyItem(id: string): "bought" | "owned" | "insufficient" | "unknown" {
+  const item = SHOP_ITEMS.find((i) => i.id === id);
+  if (!item) return "unknown";
+  let result: "bought" | "owned" | "insufficient" = "insufficient";
+  update((s) => {
+    if (s.items.includes(id)) { result = "owned"; return {}; }
+    if (availableXp(s) < item.price) return {};
+    result = "bought";
+    return { spentXp: s.spentXp + item.price, items: [...s.items, id], equippedItem: id };
+  });
+  return result;
+}
+export function equipItem(id: string | null) {
+  update((s) => id === null || s.items.includes(id) ? { equippedItem: id } : {});
+}
 
 function rules(s: Progress): { badges: string[]; chars: string[] } {
   const b: string[] = [], c: string[] = [];
@@ -23,8 +40,8 @@ function rules(s: Progress): { badges: string[]; chars: string[] } {
   if (s.chatted.length >= 2) b.push("friendly");
   if (s.done.includes("trivia5") || s.done.includes("cafe")) b.push("trivia-star");
   if (s.done.includes("sora-turnin")) c.push("sora");
-  for (const id of ["tetsu", "yuzu", "ren", "hana"]) {
-    const activity = id === "tetsu" ? "arcade" : id === "yuzu" ? "plaza" : id === "ren" ? "workshop" : "studio";
+  for (const id of TOWN_FRIENDS) {
+    const activity = TOWN_QUESTS[id].location;
     if (s.done.includes("sora-turnin") && s.done.includes(`${id}-met`) && s.done.includes(activity) && s.done.includes(`${id}-turnin`)) c.push(id);
   }
   if (s.vote !== null) b.push("voice");
@@ -89,9 +106,9 @@ export const questStage = (s: Progress): QuestStage =>
 export const soraStage = (s: Progress): QuestStage | "locked" =>
   !s.done.includes("mochi-turnin") ? "locked" : s.done.includes("sora-turnin") ? "done" : !s.done.includes("sora-met") ? "find" : s.done.includes("cafe") ? "return" : "library";
 
-export function townQuestStage(s: Progress, id: "tetsu" | "yuzu" | "ren" | "hana"): "locked" | "find" | "activity" | "return" | "done" {
+export function townQuestStage(s: Progress, id: TownFriend): "locked" | "find" | "activity" | "return" | "done" {
   if (!s.done.includes("sora-turnin")) return "locked";
   if (!s.done.includes(`${id}-met`)) return "find";
-  if (!s.done.includes(id === "tetsu" ? "arcade" : id === "yuzu" ? "plaza" : id === "ren" ? "workshop" : "studio")) return "activity";
+  if (!s.done.includes(TOWN_QUESTS[id].location)) return "activity";
   return s.done.includes(`${id}-turnin`) ? "done" : "return";
 }

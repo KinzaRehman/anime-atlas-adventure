@@ -13,6 +13,10 @@ export const WORKSHOP = { x: 300, y: 1850, door: { x: 390, y: 1840 }, w: 330 };
 export const REN = { x: 530, y: 1790 };
 export const STUDIO = { x: 1000, y: 1880, door: { x: 1040, y: 1840 }, w: 330 };
 export const HANA = { x: 1230, y: 1810 };
+export const GARDEN = { x: 920, y: 420, door: { x: 900, y: 450 }, w: 310 };
+export const KAITO = { x: 1120, y: 440 };
+export const PAPER = { x: 1650, y: 1840, door: { x: 1600, y: 1860 }, w: 300 };
+export const NAMI = { x: 1430, y: 1800 };
 export const INTERACT_RADIUS = 110;
 // Rectangles the player can't enter: [x, y, w, h]
 export const BLOCKERS: [number, number, number, number][] = [
@@ -23,4 +27,5 @@ export const BLOCKERS: [number, number, number, number][] = [
   [1450, 950, 340, 240],         // Pavilion body, entrance clear below
   [0, 1400, 360, 200], [790, 1400, 1130, 220], // stream, bridge gap at x 360-790
   [140, 1610, 260, 190], [850, 1660, 280, 130],
+  [790, 190, 240, 210], [1540, 1620, 240, 180],
 ];

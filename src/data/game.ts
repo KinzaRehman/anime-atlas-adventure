@@ -26,6 +26,8 @@ export const COLLECTIBLES: Character[] = [
   { id: "yuzu", name: "Yuzu", title: "Plaza Host", role: "Community Pavilion organizer", emoji: "", rarity: "legendary", hue: "peach", how: "After helping Sora, help Yuzu prepare a welcoming town festival", bio: "Yuzu brings the neighborhood together through sketch swaps and reading circles. Her event cards are handwritten, and she always saves a seat for someone visiting for the first time.", likes: ["Sketch swaps", "Picnics", "Handmade invitations"] },
   { id: "ren", name: "Ren", title: "Workshop Keeper", role: "Sakuragaoka bicycle mechanic", emoji: "", rarity: "rare", hue: "sage", how: "Meet Ren, complete his bicycle safety check, and return for his card", bio: "Ren restores old bicycles for neighbors and believes careful preparation makes every journey better. His workshop is a welcoming place to learn practical skills.", likes: ["Bicycle repairs", "Careful craftsmanship", "Neighborhood rides"] },
   { id: "hana", name: "Hana", title: "Sketch Club Artist", role: "Town Art Studio host", emoji: "", rarity: "rare", hue: "lavender", how: "Meet Hana, complete the sketch club challenge, and return for her card", bio: "Hana draws the quiet details of Sakuragaoka. She welcomes beginners into her studio and shares simple ways to turn everyday observations into original artwork.", likes: ["Original characters", "Sketchbooks", "Drawing town buildings"] },
+  { id: "kaito", name: "Kaito", title: "Garden Keeper", role: "Neighborhood greenhouse caretaker", emoji: "", rarity: "rare", hue: "sage", how: "Meet Kaito, prepare the greenhouse seedlings, and return for his card", bio: "Kaito grows seedlings for the neighborhood's shared planters. His patient observation notebooks inspire the backgrounds of the town sketch club.", likes: ["Seedlings", "Nature sketchbooks", "Shared gardens"] },
+  { id: "nami", name: "Nami", title: "Paper Storymaker", role: "Paper & Pages craft shop host", emoji: "", rarity: "rare", hue: "pink", how: "Meet Nami, prepare an original town booklet, and return for her card", bio: "Nami turns everyday town stories into handmade booklets. She teaches careful folding and welcomes anyone who wants to share an original idea.", likes: ["Handmade booklets", "Paper crafts", "Original stories"] },
 ];
 
 export const MOCHI_LINES = {
@@ -104,9 +106,30 @@ export const CHAT: Record<"mochi" | "sora", { name: string; role: string; nodes:
 
 export const XP_PER_LEVEL = 100;
 
-export type TownFriend = "tetsu" | "yuzu" | "ren" | "hana";
+export type TownFriend = "tetsu" | "yuzu" | "ren" | "hana" | "kaito" | "nami";
+export const TOWN_FRIENDS: TownFriend[] = ["tetsu", "yuzu", "ren", "hana", "kaito", "nami"];
 export type QuestQuestion = { q: string; a: string[]; c: number };
 export const TOWN_QUESTS = {
+  kaito: {
+    location: "garden", building: "Neighborhood Greenhouse", title: "Kaito's Seedling Trail",
+    objective: { find: "Meet Kaito by the northern greenhouse", activity: "Prepare Kaito's seedling trays", return: "Return to Kaito for his card", done: "Kaito's card collected", locked: "Help Sora first" },
+    lines: { locked: ["Help Sora at the café first, then visit the greenhouse."], intro: ["Hello, I'm Kaito. These seedlings are for our shared town planters.", "Could you help me prepare three care cards? Take a look inside the greenhouse.", "Come back afterward for my Garden Keeper card."], waiting: ["The seedling care cards are inside the greenhouse."], thanks: ["Our young plants have a thoughtful care plan now!", "Here's my Garden Keeper card. Thank you for helping the neighborhood grow."], after: ["You're welcome to practice the care cards again anytime."] },
+    questions: [
+      { q: "A seedling tray needs watering. What should you do first?", a: ["Check the soil moisture and the plant's care label", "Flood every tray", "Water only the leaves"], c: 0 },
+      { q: "How can you track the plants for the town sketch club?", a: ["Pull them up every day", "Record changes in a dated observation sketchbook", "Guess without looking"], c: 1 },
+      { q: "The shared garden has new visitors. What is a thoughtful plan?", a: ["Pick plants without permission", "Block the walking path", "Label the planters and leave a clear accessible path"], c: 2 },
+    ],
+  },
+  nami: {
+    location: "paper", building: "Paper & Pages", title: "Nami's Town Storybook",
+    objective: { find: "Meet Nami at Paper & Pages", activity: "Prepare Nami's original town booklet", return: "Return to Nami for her card", done: "Nami's card collected", locked: "Help Sora first" },
+    lines: { locked: ["Sora needs a quiz partner first. Then visit my paper shop!"], intro: ["I'm Nami! We're making a little booklet about Sakuragaoka.", "Help choose three careful craft decisions inside Paper & Pages.", "Return when the booklet plan is ready and I'll share my Paper Storymaker card."], waiting: ["The booklet planning cards are waiting inside Paper & Pages."], thanks: ["An original town story, ready to share!", "You've earned my Paper Storymaker card. Keep creating your own ideas."], after: ["You can revisit the booklet challenge whenever inspiration strikes."] },
+    questions: [
+      { q: "What belongs on the cover of your original town booklet?", a: ["Your own title and drawing of the neighborhood", "A copied famous manga cover", "Someone else's artwork without asking"], c: 0 },
+      { q: "How do you make a neat paper fold?", a: ["Rush and tear the paper", "Align the edges and press the crease carefully", "Scrunch the whole sheet"], c: 1 },
+      { q: "A neighbor contributes a sketch. What should you do before sharing it?", a: ["Remove their name", "Claim you drew it", "Ask permission and include their chosen credit"], c: 2 },
+    ],
+  },
   ren: {
     location: "workshop", building: "Bicycle Workshop", title: "Ren's Ready-to-Ride Check",
     objective: { find: "Meet Ren at the workshop", activity: "Complete Ren's safety check", return: "Return to Ren for his card", done: "Ren's card collected", locked: "Help Sora first" },

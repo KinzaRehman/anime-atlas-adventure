@@ -10,7 +10,9 @@ import { CHAT } from "@/data/game";
 import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/chat.functions";
 import { useUser } from "@/lib/session";
-import { rewardFirstChat } from "@/lib/progress";
+import { rewardFirstChat, useProgress } from "@/lib/progress";
+import { SHOP_ITEMS } from "@/data/shop";
+import { ChatShop } from "@/components/game/ChatShop";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/chat")({
@@ -42,6 +44,7 @@ function Chat() {
           ))}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">Mochi and Sora are fictional AI characters, not real people. Replies are AI-generated.</p>
+        <div className="mt-4"><ChatShop /></div>
       </div>
       {user ? <Conversation key={`${user.id}:${who}`} who={who} uid={user.id} /> : (
         <section className="paper grid place-items-center rounded-3xl p-10 text-center">
@@ -120,10 +123,13 @@ function Conversation({ who, uid }: { who: Who; uid: string }) {
 
 function Bubble({ m, who }: { m: Msg; who: Who }) {
   const me = m.role === "user";
+  const p = useProgress();
+  const pin = SHOP_ITEMS.find((item) => item.id === p.equippedItem);
   return (
     <div className={`animate-rise flex items-end gap-2 ${me ? "justify-end" : ""}`}>
       {!me && <img src={IMG[who]} alt="" className="h-8 w-8 rounded-full object-cover" />}
       <div className={`max-w-[80%] ${me ? "text-right" : ""}`}>
+        {me && pin && <p className={`mb-1 text-xs font-semibold ${pin.tone}`}>{pin.title}</p>}
         <p className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-left leading-relaxed ${me ? "bg-charcoal text-ivory" : "bg-muted"}`}>{m.content}</p>
         <time className="mt-0.5 block px-1 text-[11px] text-muted-foreground" dateTime={m.created_at}>{time(m.created_at)}</time>
       </div>
