@@ -1,64 +1,127 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { ArrowUp, Loader2, Trash2 } from "lucide-react";
 import mochiImg from "@/assets/char-mochi.jpg";
 import soraImg from "@/assets/char-sora.jpg";
 import { CHAT } from "@/data/game";
+import { supabase } from "@/integrations/supabase/client";
+import { sendChat } from "@/lib/chat.functions";
+import { useUser } from "@/lib/session";
 import { addXp, useProgress } from "@/lib/progress";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [
-    { title: "Character Café Chat — AnimeAtlas" }, { name: "description", content: "Friendly branching chats with Mochi and Sora about anime, trivia and recommendations." },
-    { property: "og:title", content: "Character Café Chat — AnimeAtlas" }, { property: "og:description", content: "Chat with café friends Mochi and Sora." },
+    { title: "Chat with Mochi and Sora | AnimeAtlas" }, { name: "description", content: "Type anything and chat with AnimeAtlas's fictional AI characters about anime, trivia and recommendations." },
+    { property: "og:title", content: "Character Chat | AnimeAtlas" }, { property: "og:description", content: "Real conversations with Mochi the librarian and Sora the barista." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
   component: Chat,
 });
 const IMG = { mochi: mochiImg, sora: soraImg } as const;
+type Who = "mochi" | "sora";
+type Msg = { id: string; role: string; content: string; created_at: string };
 
 function Chat() {
-  const [who, setWho] = useState<"mochi" | "sora">("mochi");
+  const [who, setWho] = useState<Who>("mochi");
+  const user = useUser();
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Character Café</h1>
-      <div role="tablist" aria-label="Choose a friend" className="flex gap-3">
-        {(["mochi", "sora"] as const).map((k) => (
-          <button key={k} role="tab" aria-selected={who === k} onClick={() => setWho(k)} className={`card-game flex flex-1 items-center gap-3 p-2 ${who === k ? "bg-pink-soft" : ""}`}>
-            <img src={IMG[k]} alt="" width={816} height={816} loading="lazy" className="h-14 w-14 rounded-full object-cover" />
-            <span className="text-left"><span className="block font-display text-lg font-bold">{CHAT[k].name}</span><span className="text-sm text-muted-foreground">{CHAT[k].role}</span></span>
-          </button>
-        ))}
+    <div className="mx-auto grid max-w-5xl gap-4 pb-28 md:grid-cols-[240px_1fr]">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Character Chat</p>
+        <h1 className="mb-3 font-display text-3xl font-bold">Talk with friends</h1>
+        <div role="tablist" aria-label="Choose a friend" className="flex gap-2 md:flex-col">
+          {(["mochi", "sora"] as const).map((k) => (
+            <button key={k} role="tab" aria-selected={who === k} onClick={() => setWho(k)} className={`paper flex flex-1 items-center gap-3 rounded-2xl p-2 text-left transition ${who === k ? "ring-2 ring-primary" : "opacity-80 hover:opacity-100"}`}>
+              <img src={IMG[k]} alt="" width={816} height={816} loading="lazy" className="h-12 w-12 rounded-full object-cover" />
+              <span><span className="block font-display font-bold">{CHAT[k].name}</span><span className="text-xs text-muted-foreground">{CHAT[k].role}</span></span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">Mochi and Sora are fictional AI characters, not real people. Replies are AI-generated.</p>
       </div>
-      <Conversation key={who} who={who} />
+      {user ? <Conversation key={who} who={who} uid={user.id} /> : (
+        <section className="paper grid place-items-center rounded-3xl p-10 text-center">
+          <div><img src={IMG[who]} alt="" width={816} height={816} className="mx-auto h-24 w-24 rounded-full object-cover" />
+            <p className="mt-3 font-display text-xl font-bold">Sign in to chat with {CHAT[who].name}</p>
+            <p className="text-sm text-muted-foreground">Your conversations are saved to your account.</p>
+            <Link to="/auth" search={{ redirect: "/chat" }} className="btn-primary mt-4 inline-flex min-h-12 items-center">Sign in</Link></div>
+        </section>
+      )}
     </div>
   );
 }
 
-function Conversation({ who }: { who: "mochi" | "sora" }) {
+const time = (d: string) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function Conversation({ who, uid }: { who: Who; uid: string }) {
+  const qc = useQueryClient();
+  const send = useServerFn(sendChat);
   const p = useProgress();
-  const c = CHAT[who];
-  const [log, setLog] = useState<{ from: "them" | "me"; text: string }[]>([{ from: "them", text: c.nodes.start.text }]);
-  const [node, setNode] = useState("start");
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => { end.current?.scrollIntoView({ block: "nearest" }); }, [log]);
-  const choose = (o: { label: string; next: string }) => {
-    setLog((l) => [...l, { from: "me", text: o.label }, { from: "them", text: c.nodes[o.next]!.text }]);
-    setNode(o.next);
-    if (!p.chatted.includes(who)) addXp(25, (s) => ({ chatted: [...s.chatted, who] }));
+  const key = ["chat", uid, who];
+  const hist = useQuery({ queryKey: key, queryFn: async () => {
+    const r = await supabase.from("chat_messages").select("id, role, content, created_at").eq("character", who).order("created_at").limit(200);
+    if (r.error) throw new Error(r.error.message); return r.data as Msg[];
+  } });
+  const [text, setText] = useState(""); const [pending, setPending] = useState<string | null>(null); const [err, setErr] = useState("");
+  const input = useRef<HTMLTextAreaElement>(null); const end = useRef<HTMLDivElement>(null);
+  useEffect(() => { end.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [hist.data, pending]);
+  useEffect(() => { input.current?.focus(); }, [pending]);
+
+  const go = async () => {
+    const t = text.trim(); if (!t || pending) return;
+    setText(""); setErr(""); setPending(t);
+    try {
+      const r = await send({ data: { character: who, text: t } });
+      if (!r.ok) setErr(r.error);
+      else if (!p.chatted.includes(who)) addXp(25, (s) => ({ chatted: [...s.chatted, who] }));
+    } catch { setErr("Couldn't send. Please try again."); }
+    await qc.invalidateQueries({ queryKey: key }); setPending(null);
   };
+  const clear = async () => { if (!confirm(`Clear your chat with ${CHAT[who].name}?`)) return; await supabase.from("chat_messages").delete().eq("character", who); void qc.invalidateQueries({ queryKey: key }); };
+  const msgs = hist.data ?? [];
+
   return (
-    <section className="card-game p-4" aria-label={`Conversation with ${c.name}`}>
-      <div className="max-h-[50vh] space-y-2 overflow-y-auto" aria-live="polite">
-        {log.map((m, i) => (
-          <div key={i} className={`flex items-end gap-2 animate-rise ${m.from === "me" ? "justify-end" : ""}`}>
-            {m.from === "them" && <img src={IMG[who]} alt="" width={816} height={816} loading="lazy" className="h-9 w-9 rounded-full object-cover" />}
-            <p className={`max-w-[80%] rounded-3xl px-4 py-2 font-semibold ${m.from === "me" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{m.text}</p>
-          </div>
-        ))}
+    <section className="paper flex h-[min(70dvh,640px)] flex-col rounded-3xl" aria-label={`Conversation with ${CHAT[who].name}`}>
+      <header className="flex items-center gap-3 border-b border-border p-3">
+        <img src={IMG[who]} alt="" width={816} height={816} className="h-10 w-10 rounded-full object-cover" />
+        <div className="flex-1"><p className="font-display font-bold">{CHAT[who].name}</p><p className="text-xs text-muted-foreground">{pending ? "typing…" : "Fictional AI character"}</p></div>
+        {msgs.length > 0 && <button onClick={clear} aria-label="Clear conversation" className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground hover:text-foreground"><Trash2 className="h-4 w-4" /></button>}
+      </header>
+      <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
+        {hist.isLoading && <p className="text-center text-sm text-muted-foreground">Loading your conversation…</p>}
+        {hist.error && <p role="alert" className="text-center text-sm text-destructive">Couldn't load history.</p>}
+        {hist.data && msgs.length === 0 && !pending && <p className="py-8 text-center text-muted-foreground">{CHAT[who].nodes.start.text}<br /><span className="text-sm">Type anything to start chatting.</span></p>}
+        {msgs.map((m) => <Bubble key={m.id} m={m} who={who} />)}
+        {pending && <>
+          <Bubble m={{ id: "p", role: "user", content: pending, created_at: new Date().toISOString() }} who={who} />
+          <div className="flex items-center gap-2"><img src={IMG[who]} alt="" className="h-8 w-8 rounded-full object-cover" /><span className="flex gap-1 rounded-2xl bg-muted px-4 py-3" aria-label={`${CHAT[who].name} is typing`}>{[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: `${i * 150}ms` }} />)}</span></div>
+        </>}
+        {err && <p role="alert" className="text-center text-sm font-semibold text-destructive">{err}</p>}
         <div ref={end} />
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {c.nodes[node]!.options.map((o) => <button key={o.label} className="btn-soft" onClick={() => choose(o)}>{o.label}</button>)}
-      </div>
+      <form onSubmit={(e) => { e.preventDefault(); void go(); }} className="flex items-end gap-2 border-t border-border p-3">
+        <label htmlFor="chat-input" className="sr-only">Message {CHAT[who].name}</label>
+        <textarea id="chat-input" ref={input} rows={1} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void go(); } }}
+          placeholder={`Message ${CHAT[who].name}…`} className="max-h-32 min-h-12 flex-1 resize-none rounded-2xl border border-border bg-card px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ring" />
+        <button aria-label="Send" disabled={!text.trim() || !!pending} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
+          {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}</button>
+      </form>
     </section>
+  );
+}
+
+function Bubble({ m, who }: { m: Msg; who: Who }) {
+  const me = m.role === "user";
+  return (
+    <div className={`animate-rise flex items-end gap-2 ${me ? "justify-end" : ""}`}>
+      {!me && <img src={IMG[who]} alt="" className="h-8 w-8 rounded-full object-cover" />}
+      <div className={`max-w-[80%] ${me ? "text-right" : ""}`}>
+        <p className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-left leading-relaxed ${me ? "bg-charcoal text-ivory" : "bg-muted"}`}>{m.content}</p>
+        <time className="mt-0.5 block px-1 text-[11px] text-muted-foreground" dateTime={m.created_at}>{time(m.created_at)}</time>
+      </div>
+    </div>
   );
 }
