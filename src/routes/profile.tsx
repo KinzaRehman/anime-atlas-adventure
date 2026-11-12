@@ -1,5 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthReady, useUser } from "@/lib/session";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { BADGES, COLLECTIBLES } from "@/data/game";
 import { level, reset, update, useProgress } from "@/lib/progress";
 
@@ -15,6 +19,21 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const p = useProgress();
   const nav = useNavigate();
+  const user = useUser();
+  const ready = useAuthReady();
+  const qc = useQueryClient();
+  const [accountError, setAccountError] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
+  const signOut = async () => {
+    setSigningOut(true); setAccountError("");
+    try {
+      await qc.cancelQueries(); qc.clear();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      await nav({ to: "/auth", replace: true });
+    } catch { setAccountError("Couldn't sign out. Please try again."); }
+    finally { setSigningOut(false); }
+  };
   const [copied, setCopied] = useState("");
   const [fallback, setFallback] = useState("");
   const summary = `🗺️ My AnimeAtlas journey — ${p.name}\nLevel ${level(p.xp)} · ${p.xp} XP\nFriends (${p.chars.length}/${COLLECTIBLES.length}): ${COLLECTIBLES.filter((c) => p.chars.includes(c.id)).map((c) => c.name).join(", ") || "none yet"}\nBadges (${p.badges.length}/${BADGES.length}): ${BADGES.filter((b) => p.badges.includes(b.id)).map((b) => b.name).join(", ") || "none yet"}`;
@@ -24,6 +43,15 @@ function Profile() {
   };
   return (
     <div className="space-y-5">
+      <section className="border-b border-border pb-5" aria-labelledby="account-heading">
+        <h1 id="account-heading" className="font-display text-2xl font-bold">Your account</h1>
+        {!ready ? <p role="status">Checking your account…</p> : user ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div><p className="font-semibold">Signed in as {user.user_metadata?.["display_name"] || "Explorer"}</p><p className="break-all text-sm text-muted-foreground">{user.email}</p><p className="mt-1 text-sm text-muted-foreground">Chat history and Community posts are saved to this account.</p></div>
+          <Button variant="outline" disabled={signingOut} onClick={signOut}>{signingOut ? "Signing out…" : "Sign out"}</Button>
+        </div> : <div className="mt-3 space-y-3"><p className="text-sm text-muted-foreground">Sign in with the same account on each device to access your chats and Community posts.</p><Button asChild><Link to="/auth" search={{ redirect: "/profile" }}>Sign in</Link></Button></div>}
+        {accountError && <p role="alert" className="mt-2 text-sm text-destructive">{accountError}</p>}
+        <p className="mt-3 text-xs text-muted-foreground">Town progress and collectibles are saved on this device.</p>
+      </section>
       <section className="card-game p-5">
         <label htmlFor="nm" className="text-sm font-bold text-muted-foreground">Explorer name</label>
         <input id="nm" value={p.name} maxLength={20} onChange={(e) => update(() => ({ name: e.target.value }))} className="mt-1 block w-full rounded-2xl border-[3px] border-border bg-muted px-4 py-3 font-display text-2xl font-bold" />

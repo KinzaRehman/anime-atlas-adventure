@@ -38,3 +38,4 @@ use the editor.
 - Recurring missions use UTC period keys and ordered activity events in the progress store; reward claims are guarded against duplicates so replaying activities cannot repeatedly claim the same mission.
 - Community reports and notification reads are caller-scoped by RLS; moderation uses a protected role table and a role-checking database function so clients cannot grant themselves moderation powers.
 - Removed community items are filtered in public feeds and protected by restrictive read policies with owner/moderator access retained for review.
+- Account state uses the single shared listener in src/lib/session.ts; root subscribes to identity transitions for cache invalidation, and login return paths are sanitized once to prevent conflicting redirects.

@@ -12,6 +12,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { AppShell } from "@/components/AppShell";
+import { subscribeIdentity } from "@/lib/session";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -120,6 +121,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  useEffect(() => subscribeIdentity((signedOut) => {
+    if (signedOut) {
+      void queryClient.cancelQueries();
+      queryClient.clear();
+    } else void queryClient.invalidateQueries();
+    void router.invalidate();
+  }), [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>

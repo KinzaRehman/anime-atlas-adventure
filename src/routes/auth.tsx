@@ -2,13 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { useUser } from "@/lib/session";
+import { useAuthReady, useUser } from "@/lib/session";
+import { authDestination } from "@/lib/auth-destination";
 import { Button } from "@/components/ui/button";
 import { Mail, LockKeyhole, UserRound } from "lucide-react";
 import mochi from "@/assets/char-mochi.jpg";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>): { redirect?: string | undefined } => { const r = s["redirect"]; return { redirect: typeof r === "string" && r.startsWith("/") && !r.startsWith("//") ? r : undefined }; },
+  validateSearch: (s: Record<string, unknown>): { redirect?: string | undefined } => ({ redirect: authDestination(s["redirect"]) }),
   head: () => ({ meta: [
     { title: "Sign in | AnimeAtlas" }, { name: "description", content: "Sign in to post, comment, like and vote in the AnimeAtlas community." },
     { property: "og:title", content: "Sign in | AnimeAtlas" }, { property: "og:description", content: "Join the AnimeAtlas fandom community." },
@@ -24,31 +25,44 @@ function AuthPage() {
   const to = redirect ?? "/fandoms";
   const nav = useNavigate();
   const user = useUser();
+  const ready = useAuthReady();
   const [mode, setMode] = useState<"in" | "up" | "reset">("in");
   const [email, setEmail] = useState(""); const [pw, setPw] = useState(""); const [name, setName] = useState("");
   const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false);
-  useEffect(() => { if (user) void nav({ to, replace: true }); }, [user, nav, to]);
+  useEffect(() => {
+    if (!ready || !user) return;
+    const saved = authDestination(sessionStorage.getItem("aa-after-auth"));
+    sessionStorage.removeItem("aa-after-auth");
+    void nav({ to: saved ?? to, replace: true });
+  }, [ready, user, nav, to]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setMsg("");
+    try {
     if (mode === "reset") {
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
       setMsg(error ? error.message : "If an account exists, a reset link is on its way. Check your email.");
     } else if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw });
       if (error) setMsg(error.message);
     } else {
-      const { error } = await supabase.auth.signUp({ email, password: pw, options: { emailRedirectTo: window.location.origin + "/auth", data: { display_name: name.trim() } } });
+      const { error } = await supabase.auth.signUp({ email: email.trim(), password: pw, options: { emailRedirectTo: window.location.origin + "/auth?redirect=" + encodeURIComponent(to), data: { display_name: name.trim() } } });
       setMsg(error ? error.message : "Check your email to confirm your account, then sign in.");
     }
-    setBusy(false);
+    } catch { setMsg("Couldn't connect. Please try again."); }
+    finally { setBusy(false); }
   };
   const google = async (provider: "google" | "lovable") => {
+    setBusy(true); setMsg("");
+    try {
     sessionStorage.setItem("aa-after-auth", to);
     const r = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin + "/auth" });
     if (r.error) setMsg("Sign-in didn't work. Please try again.");
+    } catch { setMsg("Couldn't connect. Please try again."); }
+    finally { setBusy(false); }
   };
-  useEffect(() => { const s = sessionStorage.getItem("aa-after-auth"); if (user && s) { sessionStorage.removeItem("aa-after-auth"); void nav({ to: s, replace: true }); } }, [user, nav]);
+
+  if (!ready || user) return <p role="status" className="py-12 text-center text-muted-foreground">Checking your account…</p>;
 
   const field = "min-h-12 w-full rounded-xl border border-border bg-card px-3 focus:outline-none focus:ring-2 focus:ring-ring";
   return (

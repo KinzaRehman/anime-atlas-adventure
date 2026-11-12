@@ -7,7 +7,8 @@
 - [ ] Phase 5: optional GPS mode (Leaflet, privacy-safe)
 - [ ] Phase 6: missions, polish, accessibility
 - [x] Cross-device accounts: existing Cloud-backed accounts and community retained; polished login page with email, Google, Lovable, and password recovery
-- [ ] Signed-in cross-device and chat verification: blocked by no confirmed account; signup confirmation and OAuth round trip remain unverified
+- [x] Wire Profile to Cloud login, show signed-in account, consolidate safe return links, and refresh account-scoped data on sign-in
+- [ ] Signed-in cross-device and chat verification: session mint confirmed no registered account; awaits the player's signup and email confirmation or social sign-in
 - [x] Daily and weekly missions: ordered town activities earn XP and achievement badges; reset and duplicate-claim rules tested
 - [x] Community reporting, protected moderation queue, and stored reply/vote notifications implemented
 - [ ] Assign moderator and verify signed-in reporting, moderation, and notifications: blocked by no selected confirmed account
