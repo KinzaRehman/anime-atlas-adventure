@@ -1,6 +1,8 @@
 # Anime Atlas Adventure
 
 Build a playful, mobile-first anime fandom exploration app called **AnimeAtlas**.
+
+
 **Live app**: https://anime-atlas-adventure.lovable.app
 
 
