@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EyeOff, Heart, MessageSquare, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUser } from "@/lib/session";
@@ -11,6 +11,7 @@ import { CommunityInbox, ModerationQueue, ReportControl } from "@/components/com
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/fandoms")({
+  validateSearch: (search: Record<string, unknown>) => ({ anime: typeof search['anime'] === "string" ? search['anime'].slice(0, 160) : "", player: typeof search['player'] === "string" ? search['player'] : "" }),
   head: () => ({ meta: [
     { title: "Community Plaza | AnimeAtlas" }, { name: "description", content: "Wholesome anime discussions with spoiler protection, threaded replies and community polls." },
     { property: "og:title", content: "Community Plaza | AnimeAtlas" }, { property: "og:description", content: "Discuss, vote and share with fellow anime fans." },
@@ -28,17 +29,20 @@ function SignInCta({ what }: { what: string }) {
 }
 
 function Fandoms() {
+  const search = Route.useSearch();
   const user = useUser();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const signOut = async () => { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); void navigate({ to: "/auth", replace: true }); };
   const posts = useQuery({ queryKey: ["posts"], queryFn: listPosts });
   const [fandom, setFandom] = useState("All");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(search.anime);
   const [sort, setSort] = useState<"new" | "top">("new");
   const [editing, setEditing] = useState<PostRow | "new" | null>(null);
+  useEffect(() => { setQ(search.anime); setEditing(null); }, [search.anime, search.player]);
   const list = (posts.data ?? [])
     .filter((p) => fandom === "All" || p.fandom === fandom)
+    .filter((p) => !search.player || p.author_id === search.player)
     .filter((p) => !q.trim() || (p.title + " " + p.body).toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => (sort === "top" ? b.post_likes.length - a.post_likes.length : 0));
 
@@ -52,6 +56,7 @@ function Fandoms() {
             <Button variant="ghost" onClick={signOut}>Sign out</Button>
           </div> : <SignInCta what="join in" />}
       </header>
+      {search.anime && <div className="mb-4 flex flex-wrap items-center gap-3 border-y border-border py-3"><p className="font-semibold">{search.anime}{search.player ? " · Shared-interest player’s discussions" : ""}</p>{user && <Button onClick={() => { if (search.player) void navigate({ to: "/fandoms", search: { anime: search.anime, player: "" } }).then(() => setEditing("new")); else setEditing("new"); }}><Plus className="h-4 w-4" />Start an anime discussion</Button>}<Button asChild variant="ghost"><Link to="/fandoms" search={{ anime: "", player: "" }}>All discussions</Link></Button></div>}
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <div className="space-y-4">
           <div className="paper space-y-3 rounded-3xl p-3">
@@ -62,7 +67,7 @@ function Fandoms() {
               <select aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value as "new" | "top")} className="ml-auto min-h-9 rounded-full border border-border bg-card px-3 text-sm"><option value="new">Newest</option><option value="top">Most liked</option></select>
             </div>
           </div>
-          {editing && user && <PostEditor uid={user.id} post={editing === "new" ? null : editing} onDone={() => setEditing(null)} />}
+          {editing && user && <PostEditor uid={user.id} initialTitle={search.anime ? `${search.anime} — discussion` : ""} post={editing === "new" ? null : editing} onDone={() => setEditing(null)} />}
           {posts.isLoading && [0, 1, 2].map((i) => <div key={i} className="paper h-32 animate-pulse rounded-3xl" />)}
           {posts.error && <p role="alert" className="rounded-2xl bg-destructive/10 p-4 font-semibold text-destructive">Couldn't load discussions. <button className="underline" onClick={() => posts.refetch()}>Try again</button></p>}
           {posts.data && list.length === 0 && <p className="paper rounded-3xl p-8 text-center text-muted-foreground">No discussions match yet. {user ? "Start one!" : ""}</p>}
@@ -75,9 +80,9 @@ function Fandoms() {
   );
 }
 
-function PostEditor({ uid, post, onDone }: { uid: string; post: PostRow | null; onDone: () => void }) {
+function PostEditor({ uid, post, onDone, initialTitle = "" }: { uid: string; post: PostRow | null; onDone: () => void; initialTitle?: string }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ fandom: post?.fandom ?? "General", title: post?.title ?? "", body: post?.body ?? "", spoiler: post?.spoiler ?? "" });
+  const [f, setF] = useState({ fandom: post?.fandom ?? "General", title: post?.title ?? initialTitle, body: post?.body ?? "", spoiler: post?.spoiler ?? "" });
   const m = useMutation({
     mutationFn: () => savePost(uid, { id: post?.id, fandom: f.fandom, title: f.title.trim(), body: f.body.trim(), spoiler: f.spoiler.trim() || null }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["posts"] }); toast.success(post ? "Post updated" : "Posted to the plaza"); onDone(); },

@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      anime_deck_cards: {
+        Row: {
+          anime_key: string
+          character_name: string
+          created_at: string
+          description: string
+          id: string
+          rating: number
+          rewatch: boolean
+          shared: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          anime_key: string
+          character_name?: string
+          created_at?: string
+          description?: string
+          id?: string
+          rating: number
+          rewatch?: boolean
+          shared?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          anime_key?: string
+          character_name?: string
+          created_at?: string
+          description?: string
+          id?: string
+          rating?: number
+          rewatch?: boolean
+          shared?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anime_deck_cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           character: string

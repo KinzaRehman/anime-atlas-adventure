@@ -36,8 +36,8 @@ export function AnimeCards() {
     <section className="mt-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black">Anime cards</h2>
-          <p className="text-muted-foreground">Finished a series? Add it to your shelf. {cards.length} completed.</p>
+          <h2 className="text-3xl font-black">Device-only shelf</h2>
+          <p className="text-muted-foreground">{cards.length} completed anime saved on this device. These cards are private and separate from your account deck.</p>
         </div>
         <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> Add anime</Button>
       </div>

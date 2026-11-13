@@ -43,3 +43,4 @@ use the editor.
 - Removed community items are filtered in public feeds and protected by restrictive read policies with owner/moderator access retained for review.
 - Account state uses the single shared listener in src/lib/session.ts; root subscribes to identity transitions for cache invalidation, and login return paths are sanitized once to prevent conflicting redirects.
 - Avatar editor and town share browser-composed illustrated wardrobe layers through renderAvatarArt; send the resulting texture over the game bus so both views stay consistent without geometric replacement characters.
+- Account anime decks use anime_deck_cards with unique user/title keys and private-by-default RLS; shared-interest discovery reads only opt-in cards and links to existing moderated Community discussions, not private messaging.
