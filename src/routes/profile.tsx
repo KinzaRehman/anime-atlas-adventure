@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { simIsAdmin } from "@/lib/sim.functions";
 import { useAuthReady, useUser } from "@/lib/session";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,7 @@ function Profile() {
         {!ready ? <p role="status">Checking your account…</p> : user ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <div><p className="font-semibold">Signed in as {user.user_metadata?.["display_name"] || "Explorer"}</p><p className="break-all text-sm text-muted-foreground">{user.email}</p><p className="mt-1 text-sm text-muted-foreground">Chat history and Community posts are saved to this account.</p></div>
           <Button variant="outline" disabled={signingOut} onClick={signOut}>{signingOut ? "Signing out…" : "Sign out"}</Button>
+          <AdminLink userId={user.id} />
         </div> : <div className="mt-3 space-y-3"><p className="text-sm text-muted-foreground">Sign in with the same account on each device to access your chats and Community posts.</p><Button asChild><Link to="/auth" search={{ redirect: "/profile" }}>Sign in</Link></Button></div>}
         {accountError && <p role="alert" className="mt-2 text-sm text-destructive">{accountError}</p>}
         <p className="mt-3 text-xs text-muted-foreground">Town progress and collectibles are saved on this device.</p>
@@ -81,4 +84,10 @@ function Profile() {
       </section>
     </div>
   );
+}
+
+function AdminLink({ userId }: { userId: string }) {
+  const check = useServerFn(simIsAdmin);
+  const q = useQuery({ queryKey: ["sim-admin", userId], queryFn: () => check() });
+  return q.data?.admin ? <Button asChild variant="secondary"><Link to="/sim">Simulation dashboard</Link></Button> : null;
 }

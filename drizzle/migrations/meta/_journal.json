@@ -36,6 +36,41 @@
       "when": 1794536937408,
       "tag": "0004_anime_decks_shared_interests",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794569717078,
+      "tag": "0005_simulation_test_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794569731508,
+      "tag": "0006_simulation_test_users_see_each_other",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794570125592,
+      "tag": "0007_simulation_session_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794570210364,
+      "tag": "0008_simulation_tokens_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794570490461,
+      "tag": "0009_fix_poll_bounds_and_stale_notifications",
+      "breakpoints": true
     }
   ]
 }

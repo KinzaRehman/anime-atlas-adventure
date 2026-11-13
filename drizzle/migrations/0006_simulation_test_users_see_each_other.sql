@@ -1,0 +1,5 @@
+ALTER POLICY "hide test posts" ON public.posts USING (NOT is_test OR author_id = auth.uid() OR public.is_sim_admin() OR public.is_test_user(auth.uid()));
+ALTER POLICY "hide test comments" ON public.comments USING (NOT is_test OR author_id = auth.uid() OR public.is_sim_admin() OR public.is_test_user(auth.uid()));
+ALTER POLICY "hide test likes" ON public.post_likes USING (NOT public.is_test_user(user_id) OR user_id = auth.uid() OR public.is_sim_admin() OR public.is_test_user(auth.uid()));
+ALTER POLICY "hide test votes" ON public.poll_votes USING (NOT public.is_test_user(user_id) OR user_id = auth.uid() OR public.is_sim_admin() OR public.is_test_user(auth.uid()));
+ALTER POLICY "hide test profiles" ON public.profiles USING (NOT public.is_test_user(id) OR id = auth.uid() OR public.is_sim_admin() OR public.is_test_user(auth.uid()));

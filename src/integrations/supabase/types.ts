@@ -102,6 +102,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_test: boolean
           parent_id: string | null
           post_id: string
         }
@@ -110,6 +111,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          is_test?: boolean
           parent_id?: string | null
           post_id: string
         }
@@ -118,6 +120,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          is_test?: boolean
           parent_id?: string | null
           post_id?: string
         }
@@ -321,6 +324,7 @@ export type Database = {
           created_at: string
           fandom: string
           id: string
+          is_test: boolean
           spoiler: string | null
           title: string
           updated_at: string
@@ -332,6 +336,7 @@ export type Database = {
           created_at?: string
           fandom?: string
           id?: string
+          is_test?: boolean
           spoiler?: string | null
           title: string
           updated_at?: string
@@ -343,6 +348,7 @@ export type Database = {
           created_at?: string
           fandom?: string
           id?: string
+          is_test?: boolean
           spoiler?: string | null
           title?: string
           updated_at?: string
@@ -375,6 +381,198 @@ export type Database = {
         }
         Relationships: []
       }
+      sim_events: {
+        Row: {
+          created_at: string
+          detail: Json
+          error: string | null
+          id: string
+          kind: string
+          ok: boolean
+          seq: number
+          sim_at: string
+          sim_day: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          error?: string | null
+          id?: string
+          kind: string
+          ok?: boolean
+          seq: number
+          sim_at: string
+          sim_day: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          error?: string | null
+          id?: string
+          kind?: string
+          ok?: boolean
+          seq?: number
+          sim_at?: string
+          sim_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sim_sessions: {
+        Row: {
+          actions: number
+          duration_s: number
+          id: string
+          sim_day: number
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          actions?: number
+          duration_s: number
+          id?: string
+          sim_day: number
+          started_at: string
+          user_id: string
+        }
+        Update: {
+          actions?: number
+          duration_s?: number
+          id?: string
+          sim_day?: number
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sim_state: {
+        Row: {
+          ai_budget: number
+          ai_used: number
+          epoch: string
+          id: number
+          paused: boolean
+          sim_day: number
+          updated_at: string
+        }
+        Insert: {
+          ai_budget?: number
+          ai_used?: number
+          epoch?: string
+          id?: number
+          paused?: boolean
+          sim_day?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_budget?: number
+          ai_used?: number
+          epoch?: string
+          id?: number
+          paused?: boolean
+          sim_day?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sim_test_results: {
+        Row: {
+          area: string
+          created_at: string
+          detail: string
+          id: string
+          name: string
+          sim_day: number
+          status: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          detail?: string
+          id?: string
+          name: string
+          sim_day?: number
+          status: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          name?: string
+          sim_day?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      sim_tokens: {
+        Row: {
+          access_token: string | null
+          expires_at: string | null
+          refresh_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          expires_at?: string | null
+          refresh_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          expires_at?: string | null
+          refresh_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sim_users: {
+        Row: {
+          archetype: string
+          created_at: string
+          display_name: string
+          email: string
+          handle: string
+          joined_day: number
+          last_active_day: number | null
+          persona: Json
+          progress: Json
+          relationships: Json
+          user_id: string
+        }
+        Insert: {
+          archetype: string
+          created_at?: string
+          display_name: string
+          email: string
+          handle: string
+          joined_day?: number
+          last_active_day?: number | null
+          persona?: Json
+          progress?: Json
+          relationships?: Json
+          user_id: string
+        }
+        Update: {
+          archetype?: string
+          created_at?: string
+          display_name?: string
+          email?: string
+          handle?: string
+          joined_day?: number
+          last_active_day?: number | null
+          persona?: Json
+          progress?: Json
+          relationships?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           role: string
@@ -396,6 +594,8 @@ export type Database = {
     }
     Functions: {
       is_community_moderator: { Args: never; Returns: boolean }
+      is_sim_admin: { Args: never; Returns: boolean }
+      is_test_user: { Args: { uid: string }; Returns: boolean }
       resolve_community_report: {
         Args: { decision: string; report_id: string }
         Returns: undefined

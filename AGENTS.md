@@ -45,3 +45,5 @@ use the editor.
 - Avatar editor and town share browser-composed illustrated wardrobe layers through renderAvatarArt; send the resulting texture over the game bus so both views stay consistent without geometric replacement characters.
 - Town walking frames are baked from the equipped illustration by a hip+knee rig (src/game/walking.ts) driven by pure gait (gait.ts) and movement-state (movement.ts) modules; the compositor draws one head and mirrors one illustrated shoe per foot so outfits never stack hair or clip shoes.
 - Account anime decks use anime_deck_cards with unique user/title keys and private-by-default RLS; shared-interest discovery reads only opt-in cards and links to existing moderated Community discussions, not private messaging.
+- Simulation: test accounts are rows in sim_users; RLS restrictive policies hide their content from non-admins, and src/lib/sim/* drives actions as each account through normal RLS (service client only for account lifecycle and logs) so the simulation exercises real rules.
+- Chat turns go through chatTurn in src/lib/chat-core.ts for both the Chat page and the simulation, keeping one AI and saving path.

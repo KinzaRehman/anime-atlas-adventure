@@ -1,0 +1,1 @@
+ALTER TABLE public.sim_tokens ADD COLUMN access_token text, ADD COLUMN expires_at timestamptz;
