@@ -2,6 +2,7 @@
 // touching the service client, which is loaded inside the handler so it never reaches the browser.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { currentPersona, type Persona } from "./sim/personas";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function requireAdmin(context: { supabase: any }) {
@@ -68,7 +69,7 @@ export const simUserDetail = createServerFn({ method: "GET" }).middleware([requi
       sb.from("comments").select("id, body, created_at, posts(title)").eq("author_id", data.userId).order("created_at"),
     ]);
     if (user.error) throw new Error(user.error.message);
-    return { user: user.data, events: events.data ?? [], sessions: sessions.data ?? [], chats: chats.data ?? [], posts: posts.data ?? [], comments: comments.data ?? [] };
+    return { user: { ...user.data, persona: currentPersona(user.data.persona as unknown as Persona) }, events: events.data ?? [], sessions: sessions.data ?? [], chats: chats.data ?? [], posts: posts.data ?? [], comments: comments.data ?? [] };
   });
 
 type Action = { action: "seed" | "day" | "pause" | "resume" | "reset" | "checks" | "budget"; budget?: number };

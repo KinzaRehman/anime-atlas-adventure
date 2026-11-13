@@ -8,7 +8,8 @@ import { simControl, simExport, simIsAdmin, simOverview, simUserDetail } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ARCHETYPE_LABEL, type Archetype } from "@/lib/sim/personas";
+import { ARCHETYPE_LABEL, type Archetype, type Persona } from "@/lib/sim/personas";
+import type { DialogueMemory } from "@/lib/sim/dialogue";
 
 export const Route = createFileRoute("/sim")({
   head: () => ({ meta: [
@@ -105,16 +106,17 @@ function UserPanel({ id, onClose }: { id: string; epoch: string; onClose: () => 
   if (!q.data) return <section className="rounded-lg border border-border bg-card p-4">Loading player…</section>;
   const { user, events, sessions, chats, posts, comments } = q.data;
   const prog = user.progress as { xp: number; chars: string[]; visited: string[]; done: string[]; badges: string[]; missions: Record<string, { steps: string[]; claimed: boolean; period: string }> };
-  const persona = user.persona as { genres: string[]; favAnime: string; favChar: string; traits: string[]; voice: string };
-  const rel = user.relationships as Record<string, { level: number; chats: number; quest: string; milestones: string[] }>;
+  const persona = user.persona as Persona;
+  const rel = user.relationships as unknown as Record<string, { level: number; chats: number; quest: string; milestones: string[]; dialogue?: DialogueMemory }>;
   const errors = events.filter((e) => !e.ok);
   return (
     <section className="space-y-4 rounded-lg border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3"><div><h2 className="font-display text-2xl">{user.display_name}</h2><p className="text-sm text-muted-foreground">{ARCHETYPE_LABEL[user.archetype as Archetype]} · {user.email} · likes {persona.genres.join(", ")} · favourite anime {persona.favAnime} · traits {persona.traits.join(", ")}</p></div><Button variant="outline" onClick={onClose}>Close</Button></div>
+      <div className="space-y-1 text-sm"><p><b>Backstory:</b> {persona.backstory}</p><p><b>Goal:</b> {persona.motivation}</p><p><b>Conversation style:</b> {persona.style}</p><p><b>Drawn to:</b> {persona.interest} · <b>Concern:</b> {persona.concern}</p></div>
       <div className="grid gap-4 md:grid-cols-2">
         <div><h3 className="font-medium">Progress</h3><p className="text-sm">{prog.xp} XP · cards: {prog.chars.join(", ") || "none"} · badges: {prog.badges.join(", ") || "none"}</p><p className="text-sm">Places visited: {prog.visited.join(", ") || "none"}</p>
           <p className="text-sm">Missions: {Object.entries(prog.missions ?? {}).map(([k, m]) => `${k} ${m.claimed ? "claimed" : `${m.steps.length} steps`} (${m.period})`).join("; ") || "none started"}</p></div>
-        <div><h3 className="font-medium">Relationships</h3>{Object.entries(rel).map(([c, r]) => <p key={c} className="text-sm"><span className="capitalize">{c}</span>: level {r.level}, {r.quest}, {r.chats} chats{r.milestones.length ? ` · ${r.milestones.join(", ")}` : ""}</p>)}</div>
+        <div><h3 className="font-medium">Relationships</h3>{Object.entries(rel).map(([c, r]) => <div key={c} className="text-sm"><p><span className="capitalize">{c}</span>: level {r.level}, {r.quest}, {r.chats} chats{r.milestones.length ? ` · ${r.milestones.join(", ")}` : ""}</p>{r.dialogue && <p className="text-muted-foreground">Memory: {r.dialogue.turns} exchanges · last spoke day {r.dialogue.lastDay} · {r.dialogue.lastBranch} · topics: {r.dialogue.discussed.join(", ")}</p>}</div>)}</div>
       </div>
       <div><h3 className="font-medium">Conversations ({chats.length} messages)</h3><div className="max-h-64 space-y-2 overflow-y-auto">{chats.map((c, i) => <p key={i} className="text-sm"><b className="capitalize">{c.role === "user" ? "Player" : c.character}:</b> {c.content}</p>)}{!chats.length && <p className="text-sm text-muted-foreground">No AI chats (limited by the AI budget).</p>}</div></div>
       <div><h3 className="font-medium">Community</h3>{posts.map((p) => <p key={p.id} className="text-sm">Post: <b>{p.title}</b> — {p.body}</p>)}{comments.map((c) => <p key={c.id} className="text-sm">Reply on “{(c.posts as { title: string } | null)?.title}”: {c.body}</p>)}{!posts.length && !comments.length && <p className="text-sm text-muted-foreground">No posts or replies.</p>}</div>

@@ -1,13 +1,14 @@
 // Simulation engine. Every player action runs as that test account through the normal signed-in
 // database rules (RLS); the service client is used only to create/remove test accounts and write sim logs.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { PERSONAS, testEmail, type Persona } from "./personas";
+import { PERSONAS, testEmail, currentPersona, type Persona } from "./personas";
+import { emptyMemory, planDialogue, rememberDialogue, type DialogueMemory } from "./dialogue";
 import { freshProgress, nextStep, applyStep, claimReady, replayActivity } from "./progress-sim";
 import type { Progress } from "@/lib/progress";
 import { animeKey } from "@/data/anime-catalogue";
 import { COLLECTIBLES } from "@/data/game";
 import { chatTurn } from "@/lib/chat-core";
-import { posts as postText, comment as commentText, chatLine } from "./writing";
+import { posts as postText, comment as commentText } from "./writing";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = SupabaseClient<any>;
@@ -82,7 +83,11 @@ export async function seed(env: SimEnv) {
   const have = new Set((existing ?? []).map((r) => r.handle));
   let created = 0, reused = 0;
   for (const p of PERSONAS) {
-    if (have.has(p.handle)) { reused++; continue; }
+    if (have.has(p.handle)) {
+      const update = await env.admin.from("sim_users").update({ persona: p }).eq("handle", p.handle);
+      if (update.error) throw new Error(update.error.message);
+      reused++; continue;
+    }
     const email = testEmail(p.handle), password = await passwordFor(env, email);
     const res = await env.admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { display_name: p.name, test_account: true } });
     let id = res.data.user?.id;
@@ -101,7 +106,7 @@ export async function seed(env: SimEnv) {
 }
 
 type SimUser = { user_id: string; handle: string; email: string; persona: Persona; progress: Progress; relationships: Record<string, Rel>; last_active_day: number | null; joined_day: number };
-export type Rel = { level: number; chats: number; quest: string; milestones: string[]; lastSeenDay: number };
+export type Rel = { level: number; chats: number; quest: string; milestones: string[]; lastSeenDay: number; dialogue?: DialogueMemory };
 
 const REL_NAMES = ["Stranger", "Acquaintance", "Friend", "Good friend", "Close friend"];
 export const relName = (l: number) => REL_NAMES[Math.min(l, 4)]!;
@@ -132,7 +137,7 @@ export async function runDay(env: SimEnv) {
 }
 
 async function simulateUser(env: SimEnv, u: SimUser, day: number, epoch: string, budget: { left: number; used: number }) {
-  const p = u.persona, r = rng(`${u.handle}:${day}`);
+  const p = currentPersona(u.persona), r = rng(`${u.handle}:${day}`);
   const evs: Ev[] = [];
   let minute = Math.floor(r() * 40);
   const at = () => simDate(epoch, day, p.hour, (minute += 1 + Math.floor(r() * 6)));
@@ -205,9 +210,12 @@ async function simulateUser(env: SimEnv, u: SimUser, day: number, epoch: string,
       const thread = await db.from("comments").select("id, author_id, body").eq("post_id", target.id).order("created_at").limit(30);
       // People rarely reply twice to the same post, and don't repeat what someone already said.
       if (thread.data?.some((c) => c.author_id === uid) && r() < 0.8) continue;
-      const parent = thread.data?.length && r() < 0.4 ? thread.data[Math.floor(r() * thread.data.length)]!.id : null;
-      let body = commentText(p, target.title, prog, r);
-      for (let t = 0; t < 4 && thread.data?.some((c) => c.body === body); t++) body = commentText(p, target.title, prog, r);
+      const parentRow = thread.data?.length && r() < 0.4 ? thread.data[Math.floor(r() * thread.data.length)] : undefined;
+      const parent = parentRow?.id ?? null;
+      const previous = thread.data?.filter((c) => c.author_id === uid).at(-1)?.body;
+      const context = { parent: parentRow?.body, previous };
+      let body = commentText(p, target.title, prog, r, context);
+      for (let t = 0; t < 4 && thread.data?.some((c) => c.body === body); t++) body = commentText(p, target.title, prog, r, context);
       if (thread.data?.some((c) => c.body === body)) continue;
       const res = await db.from("comments").insert({ author_id: uid, post_id: target.id, body, parent_id: parent, created_at: now().toISOString() }).select("id").single();
       if (res.error) throw new Error(res.error.message);
@@ -256,12 +264,23 @@ async function simulateUser(env: SimEnv, u: SimUser, day: number, epoch: string,
     // Keep the last budgeted message for a follow-up, so memory is actually tested.
     if (budget.left <= 0 || (re.chats === 0 && budget.left === 1)) { log("chat_skipped", { character: who, reason: "AI budget reached" }); return; }
     budget.left--; budget.used++;
-    const text = chatLine(p, re.chats, prog);
+    let memory = re.dialogue;
+    if (!memory) {
+      const history = await db.from("chat_messages").select("role, content, created_at").eq("user_id", uid).eq("character", who).order("created_at");
+      if (history.error) { log("chat", { character: who }, false, history.error.message); budget.left++; budget.used--; return; }
+      const replies = (history.data ?? []).filter((row) => row.role === "assistant");
+      const last = replies.at(-1);
+      const lastDay = last ? Math.max(1, Math.floor((Date.parse(last.created_at) - Date.parse(`${epoch}T00:00:00Z`)) / 86400000) + 1) : 0;
+      memory = { ...emptyMemory(), turns: replies.length, lastReply: last?.content ?? "", lastDay, lastCards: prog.chars.length };
+    }
+    const plan = planDialogue(p, prog, day, memory);
+    const text = plan.text;
     try {
-      const res = await chatTurn(db, uid, who, text, now().toISOString());
+      const res = await chatTurn(db, uid, who, text, now().toISOString(), plan.context);
       if (!res.ok) { log("chat", { character: who, sent: text }, false, res.error); return; }
       re.chats++; re.lastSeenDay = day;
-      log("chat", { character: who, sent: text, reply: res.message.content });
+      re.dialogue = rememberDialogue(memory, plan.branch, res.message.content, day, prog.chars.length);
+      log("chat", { character: who, branch: plan.branch, sent: text, reply: res.message.content });
     } catch (e) { log("chat", { character: who, sent: text }, false, e instanceof Error ? e.message : String(e)); }
   };
 
@@ -280,6 +299,8 @@ async function simulateUser(env: SimEnv, u: SimUser, day: number, epoch: string,
     } else if (r() < 0.5) await post("question"); break;
     case "returning": explore(1 + Math.floor(r() * 2)); if (gap >= 7) { await post("return"); await readInbox(); } else if (r() < 0.3) await like(1); break;
   }
+  // Every identity can converse; habits affect frequency, not access to the real chat path.
+  if (p.archetype !== "character" && r() < (p.archetype === "casual" ? 0.08 : p.archetype === "newbie" ? 0.3 : 0.18)) await chat();
   // Characters notice familiar players: milestone tracking per character.
   for (const [c, re] of Object.entries(rel)) {
     const level = Math.min(4, (re.quest === "met" ? 1 : re.quest === "activity done" ? 1 : re.quest === "quest complete" ? 2 : 0) + Math.floor(re.chats / 2) + (prog.chars.includes(c) ? 1 : 0));
@@ -299,7 +320,7 @@ async function flush(env: SimEnv, u: SimUser, day: number, evs: Ev[], prog: Prog
   await env.admin.from("sim_sessions").upsert({ user_id: u.user_id, sim_day: day, started_at: evs[0]!.at.toISOString(), duration_s: Math.max(30, duration), actions: evs.length }, { onConflict: "user_id,sim_day", ignoreDuplicates: true });
   // A failed sign-in is not a visit, so it must not count as the player's last active day.
   const visited = evs.some((e) => e.ok && e.kind !== "login") || evs.some((e) => e.kind === "login" && e.ok);
-  await env.admin.from("sim_users").update({ progress: prog, relationships: rel, ...(visited ? { last_active_day: day } : {}) }).eq("user_id", u.user_id);
+  await env.admin.from("sim_users").update({ persona: currentPersona(u.persona), progress: prog, relationships: rel, ...(visited ? { last_active_day: day } : {}) }).eq("user_id", u.user_id);
 }
 
 /** Removes only test accounts and everything they created. Real players' rows are never selected. */

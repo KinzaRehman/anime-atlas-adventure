@@ -16,7 +16,7 @@ export function cleanReply(t: string) {
 }
 
 
-export async function chatTurn(supabase: SupabaseClient, userId: string, character: ChatCharacter, text: string, at?: string) {
+export async function chatTurn(supabase: SupabaseClient, userId: string, character: ChatCharacter, text: string, at?: string, simulationContext?: string) {
   const data = { character, text };
   const stamp = at ? { created_at: at } : {};
   const hist = await supabase.from("chat_messages").select("role, content").eq("user_id", userId).eq("character", data.character).order("created_at", { ascending: false }).limit(20);
@@ -32,7 +32,7 @@ export async function chatTurn(supabase: SupabaseClient, userId: string, charact
   input.push({ role: "user", content: data.text });
   let reply = "";
   try {
-    const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: `${BASE}\n\n${PERSONAS[data.character]}`, input });
+    const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: `${BASE}\n\n${PERSONAS[data.character]}${simulationContext ? `\n\n${simulationContext}` : ""}`, input });
     reply = res.output.flatMap((o) => (o.type === "message" ? o.content : [])).map((c) => (c.type === "output_text" ? c.text : "")).join("");
     reply = cleanReply(reply);
   } catch (e) {

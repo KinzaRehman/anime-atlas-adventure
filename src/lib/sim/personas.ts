@@ -1,9 +1,10 @@
 // 30 synthetic test personas. Emails use the reserved .test domain so nothing can ever be delivered.
 import type { AvatarConfig } from "@/data/avatar";
+import { storyAt, type Story } from "./stories";
 
 export type Archetype = "daily" | "casual" | "character" | "social" | "achiever" | "newbie" | "returning";
 export type Voice = "bubbly" | "chill" | "careful" | "terse" | "curious" | "dry";
-export interface Persona {
+export interface Persona extends Story {
   handle: string; name: string; archetype: Archetype; voice: Voice; genres: string[]; favAnime: string; favChar: string;
   chatWith: "mochi" | "sora"; traits: string[]; joinedDay: number; hour: number; avatar: AvatarConfig;
 }
@@ -60,5 +61,10 @@ const ROWS: Row[] = [
   ["ryo-pause", "Ryo (test)", "returning", "careful", "Sports", "Big Windup!", "Tetsu", "sora", "busy with exams", 3, 20],
 ];
 export const PERSONAS: Persona[] = ROWS.map(([handle, name, archetype, voice, g, favAnime, favChar, chatWith, t, joinedDay, hour], i) => ({
-  handle, name, archetype, voice, genres: g.split(","), favAnime, favChar, chatWith, traits: t.split(","), joinedDay, hour, avatar: look(i),
+  handle, name, archetype, voice, genres: g.split(","), favAnime, favChar, chatWith, traits: t.split(","), joinedDay, hour, avatar: look(i), ...storyAt(i),
 }));
+
+/** Upgrade saved identities without overwriting progress, relationships or conversations. */
+export function currentPersona(saved: Persona): Persona {
+  return PERSONAS.find((p) => p.handle === saved.handle) ?? saved;
+}

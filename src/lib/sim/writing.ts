@@ -2,6 +2,7 @@
 import type { Persona } from "./personas";
 import type { Progress } from "@/lib/progress";
 import { COLLECTIBLES } from "@/data/game";
+import { emptyMemory, planDialogue } from "./dialogue";
 
 const pick = <T,>(r: () => number, xs: T[]) => xs[Math.floor(r() * xs.length)]!;
 const cardName = (id: string) => COLLECTIBLES.find((c) => c.id === id)?.name ?? id;
@@ -40,19 +41,22 @@ export function posts(p: Persona, kind: "discovery" | "question" | "opinion" | "
   const b = last ? `That makes ${s.chars.length} cards. Level climbing slowly, ${s.xp} XP now.` : `Walked around the fountain and met Mochi. The town is really pretty.`;
   return { fandom, title: t, body: voice(p, b) };
 }
-export function comment(p: Persona, title: string, s: Progress, r: () => number) {
+export function comment(p: Persona, title: string, s: Progress, r: () => number, context?: { parent?: string; previous?: string }) {
+  if (context?.parent) {
+    const quote = context.parent.slice(0, 140).replace(/\s+/g, " ");
+    return voice(p, `On your point "${quote}": I read that through ${p.interest}. ${context.previous ? `Earlier I said "${context.previous.slice(0, 100)}"; I'm still weighing it against ` : "My hesitation is "}${p.concern}. What made that work for you?`);
+  }
+  if (context?.previous) return voice(p, `Following up on "${context.previous.slice(0, 120)}": my goal is to ${p.motivation.toLowerCase()}. Has anyone tried a different approach to "${title}"?`);
   if (/unlock Sora/i.test(title)) return voice(p, s.done.includes("mochi-turnin") ? "You have to go back to Mochi after the library shelves. The turn-in is what unlocks Sora." : "Same problem here, following this.");
   if (/greenhouse/i.test(title)) return voice(p, s.chars.includes("kaito") ? "It's north of the fountain, past the blossom trees. Kaito is standing just outside." : "No idea yet, haven't found it either.");
   if (/missions reset/i.test(title)) return voice(p, "Daily missions reset at midnight UTC, weekly ones on Monday. It caught me out too.");
   if (/too easy/i.test(title)) return pick(r, ["Disagree, question four got me twice.", "Agreed, a harder round would be nice.", "Easy for you maybe."]);
   if (/best character/i.test(title)) return pick(r, [`Respectfully, it's ${p.favChar}.`, "Hard agree.", "Mochi fans are going to be upset."]);
   if (/Back after a break/i.test(title)) return voice(p, s.chars.length > 4 ? "Ren and Hana opened up in the south part of town. Worth the walk." : "Welcome back! Not sure, I'm still early too.");
-  if (/Just unlocked/i.test(title)) return pick(r, ["Congrats!", voice(p, "Nice, I'm one behind you."), "How long did that take you?", "Which quest was hardest?", voice(p, `I still need that one. ${s.chars.length} cards for me so far.`), "Nice work.", voice(p, `Did ${p.favChar}'s quest feel harder than that one?`), "Ooh, saving this for later."]);
-  return pick(r, [voice(p, `Good point. ${p.favAnime} fans unite.`), "Interesting.", voice(p, "Adding this to my list.")]);
+  if (/Just unlocked/i.test(title)) return voice(p, `That card fits my goal to ${p.motivation.toLowerCase()}. I have ${s.chars.length} cards so far. Was ${p.concern} an issue during that quest?`);
+  return voice(p, `On "${title}", ${p.favAnime} made me appreciate ${p.interest}. I wonder how that fits your experience, especially around ${p.concern}.`);
 }
 /** Messages for the real AI chat. Later ones deliberately test whether the character remembers earlier turns. */
 export function chatLine(p: Persona, n: number, s: Progress) {
-  if (n === 0) return `Hi! I just finished ${p.favAnime} and really loved it. Could you suggest something similar?`;
-  if (n === 1) return "Last time I told you about a show I had just finished. Do you remember which one it was?";
-  return s.chars.length ? `I just finished ${cardName(s.chars[s.chars.length - 1]!)}'s quest. Any tips for what to explore next?` : "Any tips for a new explorer like me?";
+  return planDialogue(p, s, 1, { ...emptyMemory(), turns: n }).text;
 }

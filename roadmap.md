@@ -25,6 +25,8 @@
 - [ ] Requested Mochi reward test: sign in with player's account, send a real chat, reload, and verify 25 XP in Profile; requires player's account
 
 ## 30-user simulation
+- [x] Give all 30 test players distinct backstories, conversation styles and persistent, history-driven dialogue branches; 30 saved identities verified, 72 tests pass, existing histories and AI budget preserved.
+- [ ] Live verification of new simulated conversation branches: approved AI allowance is exhausted (3/3); owner must increase budget before additional generated replies. Admin dashboard inspection awaits owner's admin account.
 - [x] 30 test accounts, 30 simulated days, admin dashboard, export, checks, rerun/reset docs (docs/simulation.md).
 - [ ] Give the owner's account admin access. Blocked on: owner signing up.
 - [ ] Sync real players' town progress to their account (found by the simulation).

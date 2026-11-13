@@ -47,3 +47,4 @@ use the editor.
 - Account anime decks use anime_deck_cards with unique user/title keys and private-by-default RLS; shared-interest discovery reads only opt-in cards and links to existing moderated Community discussions, not private messaging.
 - Simulation: test accounts are rows in sim_users; RLS restrictive policies hide their content from non-admins, and src/lib/sim/* drives actions as each account through normal RLS (service client only for account lifecycle and logs) so the simulation exercises real rules.
 - Chat turns go through chatTurn in src/lib/chat-core.ts for both the Chat page and the simulation, keeping one AI and saving path.
+- Synthetic identities are authored in sim/stories.ts; dialogue branches use successful per-character exchange memories in sim_users.relationships and actual saved replies, so reruns preserve history without fabricated conversations or extra AI usage.
