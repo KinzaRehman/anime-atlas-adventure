@@ -19,19 +19,22 @@ import gardenImg from "@/assets/world/garden.webp";
 import paperImg from "@/assets/world/paper.webp";
 import { WORKSHOP, REN, STUDIO, HANA, GARDEN, KAITO, PAPER, NAMI } from "./world";
 import { bus } from "./bus";
+import { walkingSheet } from "./walking";
+import { WaterMotion } from "./WaterMotion";
 import { ARCADE, BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, PLAZA, SORA, SPAWN, TETSU, WORLD, YUZU } from "./world";
 
 const SPEED = 260; // px/s
 const ACCEL = 12;  // velocity smoothing
 
 export class TownScene extends Phaser.Scene {
-  player!: Phaser.GameObjects.Image;
-  private shadow!: Phaser.GameObjects.Ellipse;
-  private mochi!: Phaser.GameObjects.Image;
+  declare player: Phaser.GameObjects.Sprite;
+  private water?: WaterMotion;
+  private walkAnimation = "";
+  declare private shadow: Phaser.GameObjects.Ellipse;
+  declare private mochi: Phaser.GameObjects.Image;
   private markers: Partial<Record<"mochi" | "sora" | "tetsu" | "yuzu" | "ren" | "hana" | "kaito" | "nami", Phaser.GameObjects.Container>> = {};
   private vel = new Phaser.Math.Vector2();
-  private keys!: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
-  private walkT = 0;
+  declare private keys: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
   private lastNear = "";
   private posTick = 0;
   reduced = false;
@@ -56,7 +59,19 @@ export class TownScene extends Phaser.Scene {
   }
 
   private avatarN = 0;
-  private sparkly = false; private idleT = 0; private sparkT = 0;
+  private sparkly = false; private sparkT = 0;
+  private installWalking(key: string, source: CanvasImageSource, width: number, height: number) {
+    const sheet = walkingSheet(source, width, height);
+    const texture = this.textures.addCanvas(`${key}-sheet`, sheet.canvas);
+    if (!texture) return;
+    // CanvasTexture already owns its source; register frame rectangles directly.
+    for (let frame = 0; frame < sheet.count; frame++) texture.add(frame, 0, frame * sheet.frameWidth, 0, sheet.frameWidth, sheet.frameHeight);
+    const previous = this.walkAnimation;
+    this.walkAnimation = `${key}-walk`;
+    this.anims.create({ key: this.walkAnimation, frames: this.anims.generateFrameNumbers(`${key}-sheet`, { start: 1, end: 8 }), frameRate: 12, repeat: -1 });
+    this.player?.anims.stop(); this.player?.setTexture(`${key}-sheet`, 0).setDisplaySize(62, 168);
+    if (previous) this.anims.remove(previous);
+  }
   setAvatar(url: string, sparkly = false) {
     this.sparkly = sparkly;
     const key = `avatar-${++this.avatarN}`;
@@ -64,7 +79,7 @@ export class TownScene extends Phaser.Scene {
     img.onload = () => {
       if (!this.sys?.isActive() || key !== `avatar-${this.avatarN}`) return;
       const previous = this.player?.texture.key;
-      this.textures.addImage(key, img); this.player?.setTexture(key).setDisplaySize(62, 168);
+      this.installWalking(key, img, img.width, img.height);
       if (previous?.startsWith("avatar-")) this.textures.remove(previous);
     };
     img.src = url;
@@ -73,6 +88,8 @@ export class TownScene extends Phaser.Scene {
   create() {
     this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.add.image(0, 0, "ground").setOrigin(0).setDepth(-10);
+    this.water = new WaterMotion(this);
+    this.water.update(0);
     // warm evening grade
     this.add.rectangle(0, 0, WORLD.w, WORLD.h, 0xffb27a, 0.08).setOrigin(0).setDepth(5000).setBlendMode(Phaser.BlendModes.MULTIPLY);
 
@@ -109,7 +126,9 @@ export class TownScene extends Phaser.Scene {
     }
 
     this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
-    this.player = this.add.image(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
+    this.player = this.add.sprite(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
+    const original = this.textures.get("player").getSourceImage() as HTMLImageElement;
+    this.installWalking("explorer-walking", original, original.width, original.height);
     const unsubscribeAvatar = bus.on("avatar", ({ url, sparkly }) => this.setAvatar(url, sparkly));
     this.events.once("shutdown", unsubscribeAvatar);
 
@@ -162,6 +181,7 @@ export class TownScene extends Phaser.Scene {
 
   override update(_t: number, dms: number) {
     const dt = Math.min(dms / 1000, 0.05);
+    if (!this.reduced) this.water?.update(dt);
     let ix = bus.input.x, iy = bus.input.y;
     const k = this.keys;
     if (k) {
@@ -175,17 +195,20 @@ export class TownScene extends Phaser.Scene {
     const blend = 1 - Math.exp(-ACCEL * dt);
     this.vel.x += (ix * SPEED - this.vel.x) * blend;
     this.vel.y += (iy * SPEED - this.vel.y) * blend;
+    // Releasing controls plants the feet immediately instead of drifting to a stop.
+    if (ix === 0) this.vel.x = 0;
+    if (iy === 0) this.vel.y = 0;
     const p = this.player;
+    const oldX = p.x, oldY = p.y;
     const nx = p.x + this.vel.x * dt, ny = p.y + this.vel.y * dt;
     if (!this.blocked(nx, p.y)) p.x = nx; else this.vel.x = 0;
     if (!this.blocked(p.x, ny)) p.y = ny; else this.vel.y = 0;
 
-    const moving = Math.hypot(this.vel.x, this.vel.y) > 20;
-    if (moving) { this.walkT += dt * 12; if (Math.abs(this.vel.x) > 20) p.setFlipX(this.vel.x < 0); }
-    const bob = moving && !this.reduced ? Math.abs(Math.sin(this.walkT)) * 5 : 0;
-    this.idleT += dt;
-    const breathe = !moving && !this.reduced ? Math.sin(this.idleT * 2.4) * 1.6 : 0;
-    p.setDisplaySize(62, 168 - bob * 0.6 + breathe).setAngle(moving && !this.reduced ? Math.sin(this.walkT) * 2.5 : 0);
+    const moving = Math.hypot(p.x - oldX, p.y - oldY) > 0.2;
+    if (moving && Math.abs(this.vel.x) > 20) p.setFlipX(this.vel.x < 0);
+    if (moving && !this.reduced) p.play(this.walkAnimation, true);
+    else { p.anims.stop(); p.setFrame(0); }
+    p.setDisplaySize(62, 168).setAngle(0);
     if (this.sparkly && !this.reduced && (this.sparkT -= dt) <= 0) {
       this.sparkT = moving ? 0.12 : 0.45;
       const sp = this.add.star(p.x + Phaser.Math.Between(-28, 28), p.y - Phaser.Math.Between(10, 150), 4, 2, 6, Phaser.Math.RND.pick([0xfff4c9, 0xf6bfcf, 0xffffff])).setDepth(p.y + 1).setBlendMode(Phaser.BlendModes.ADD);

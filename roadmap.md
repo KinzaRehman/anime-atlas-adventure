@@ -1,4 +1,6 @@
 # AnimeAtlas roadmap
+- [ ] Verify a few saved catalogue decks and real shared-player matches: blocked by no registered accounts; three-catalogue-title fixtures pass overlap ranking and self/private/unrelated exclusion checks without adding fake live players
+- [x] Animate stream and fountain water, and replace explorer sliding with illustrated walking frames; desktop/phone frames, immediate stop, and phone joystick start/release verified
 - [x] Anime decks: 100 curated titles across the five requested categories, account-backed rated cards, opt-in shared interests and Community discussion links; public desktop/mobile filters and rule tests verified
 - [ ] Anime deck signed-in save/reload and shared-player checks: blocked by no registered account; authoritative top-rated ordering also unavailable because catalogue API requests timed out
 - [x] Town map: all eight buildings, selectable quests, current position, and saved completion status; desktop/mobile checks and Mochi completion after reload verified

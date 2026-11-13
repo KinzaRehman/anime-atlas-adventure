@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
+const { from } = vi.hoisted(() => ({ from: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { from } }));
 import { ANIME_CATALOGUE, ANIME_GENRES, filterAnime } from "@/data/anime-catalogue";
-import { groupSharedPlayers, validateDeckCard } from "@/lib/anime-decks";
+import { groupSharedPlayers, sharedPlayers, validateDeckCard } from "@/lib/anime-decks";
 describe("anime decks", () => {
   it("prelists 100 distinct anime cards", () => {
     expect(ANIME_CATALOGUE).toHaveLength(100);
@@ -25,5 +26,33 @@ describe("anime decks", () => {
       { user_id: "b", title: "Barakamon", profiles: { display_name: "B" } },
     ];
     expect(groupSharedPlayers(rows).map((p) => [p.id, p.titles.length])).toEqual([["b", 2], ["a", 1]]);
+  });
+  it("matches three catalogue decks using only other players' opted-in matching cards", async () => {
+    const titles = ["Haikyu!!", "Barakamon", "Laid-Back Camp"];
+    const keys = titles.map((title) => ANIME_CATALOGUE.find((a) => a.title === title)?.key ?? "missing");
+    const rows = [
+      { user_id: "me", anime_key: keys[0], title: titles[0], shared: true, profiles: { display_name: "Me" } },
+      { user_id: "sports", anime_key: keys[0], title: titles[0], shared: true, profiles: { display_name: "Sports player" } },
+      { user_id: "mixed", anime_key: keys[0], title: titles[0], shared: true, profiles: { display_name: "Mixed player" } },
+      { user_id: "mixed", anime_key: keys[1], title: titles[1], shared: true, profiles: { display_name: "Mixed player" } },
+      { user_id: "private", anime_key: keys[2], title: titles[2], shared: false, profiles: { display_name: "Private player" } },
+      { user_id: "unrelated", anime_key: "sherlock-hound", title: "Sherlock Hound", shared: true, profiles: { display_name: "Mystery player" } },
+    ];
+    let result = rows;
+    const chain = {
+      select: vi.fn(() => chain),
+      eq: vi.fn((field, value) => { result = result.filter((r) => r[field as keyof typeof r] === value); return chain; }),
+      neq: vi.fn((field, value) => { result = result.filter((r) => r[field as keyof typeof r] !== value); return chain; }),
+      in: vi.fn((_field, values) => { result = result.filter((r) => values.includes(r.anime_key)); return chain; }),
+      limit: vi.fn(async () => ({ data: result, error: null })),
+    };
+    from.mockReturnValue(chain);
+    expect(keys).not.toContain("missing");
+    expect(await sharedPlayers("me", keys)).toEqual([
+      { id: "mixed", name: "Mixed player", titles: ["Haikyu!!", "Barakamon"] },
+      { id: "sports", name: "Sports player", titles: ["Haikyu!!"] },
+    ]);
+    expect(chain.eq).toHaveBeenCalledWith("shared", true);
+    expect(chain.neq).toHaveBeenCalledWith("user_id", "me");
   });
 });
