@@ -1,4 +1,5 @@
 # AnimeAtlas roadmap
+- [ ] Anime decks: prelisted 100 highly rated anime across Action, Comedy, Slice of Life, Shounen and Mystery; add rated cards, discover consenting players with shared titles, and discuss in Community
 - [x] Town map: all eight buildings, selectable quests, current position, and saved completion status; desktop/mobile checks and Mochi completion after reload verified
 - [x] Phase 1: playable neighborhood (Phaser): avatar movement (WASD/arrows + touch joystick), follow camera, 1 interactive building (Manga Library), 1 discoverable character (Mochi), proximity prompts, unlock collectible card — verify desktop + mobile
 - [ ] Phase 2: eight town characters and quests complete; detailed profile views and collection redesign remain
