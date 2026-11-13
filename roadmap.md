@@ -23,3 +23,7 @@
 - [x] Chat shop: fixed-price explorer pins bought with earned XP, equipped titles in chat and town; purchase/reload browser checks and insufficient-XP tests passed
 - [ ] Requested Community test: sign in, post, flag, review moderation, and verify reply notification; requires an account and moderator access
 - [ ] Requested Mochi reward test: sign in with player's account, send a real chat, reload, and verify 25 XP in Profile; requires player's account
+
+## 30-user simulation (pending decisions)
+- [ ] Test accounts, 30 simulated days, admin simulation dashboard, export, test report, rerun/reset docs. Blocked on: where to seed (shared live database) and who is admin.
+- Rules: AI only within an approved, configurable budget; repeatable seeding with no duplicates; cleanup never touches real data; test content kept apart from real community activity.
