@@ -1,4 +1,5 @@
 # AnimeAtlas roadmap
+- [x] Add five distinct labelled ambient visitors using illustrated walking animations and obstacle-aware routes; all five moved on desktop/mobile browser checks, with 13 navigation/visitor tests passing.
 - [x] Restore the circular fountain hub, retain grid streets for surrounding buildings, and keep routes clear around the fountain.
 ## World navigation and franchise collection overhaul
 - [x] Clear streets, align visible buildings and collision footprints, connect every entrance, and verify desktop/mobile navigation.

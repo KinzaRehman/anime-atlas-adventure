@@ -50,4 +50,5 @@ use the editor.
 - Synthetic identities are authored in sim/stories.ts; dialogue branches use successful per-character exchange memories in sim_users.relationships and actual saved replies, so reruns preserve history without fabricated conversations or extra AI usage.
 - World buildings, streets and collision silhouettes share src/game/world.ts; EasyStar routes are computed in navigation.ts and manual input cancels them, keeping walking and map destinations consistent.
 - Hub walkability and fountain collision use shared world geometry so the street-cost grid respects the circular plaza and its connectors.
+- Ambient town visitors are local labelled simulations in src/game/visitors.ts, using shared illustrated avatars, gait and navigation without creating accounts or changing progress.
 - Anime metadata is a committed AniList snapshot with explicit franchise membership; MAL IDs are positive and AniList-only installment IDs are negative to avoid source-ID collisions, while private account progress/favorites remain separate from metadata and existing rated decks.

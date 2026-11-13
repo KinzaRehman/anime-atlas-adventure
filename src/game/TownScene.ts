@@ -25,6 +25,7 @@ import { findRoute, type Point } from "./navigation";
 import { BUILDINGS, NPCS, isBlocked } from "./world";
 import { strideTimeScale } from "./gait";
 import { WaterMotion } from "./WaterMotion";
+import { TownVisitors } from "./visitors";
 import { ARCADE, BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, PLAZA, SORA, SPAWN, TETSU, WORLD, YUZU } from "./world";
 
 const PLAYER_H = 168, PLAYER_W = PLAYER_H * FRAME.w / (FRAME.h - 24);
@@ -32,9 +33,10 @@ const PLAYER_H = 168, PLAYER_W = PLAYER_H * FRAME.w / (FRAME.h - 24);
 export class TownScene extends Phaser.Scene {
   declare player: Phaser.GameObjects.Sprite;
   private water?: WaterMotion;
+  private visitors?: TownVisitors;
   private route: Point[] = [];
   private npcSprites: {sprite: Phaser.GameObjects.Image; home: Point; shadow: Phaser.GameObjects.Ellipse; phase: number}[] = [];
-  navigate(x: number, y: number) { this.route = findRoute({x:this.player.x,y:this.player.y},{x,y},this.npcSprites.map(n=>n.sprite)); }
+  navigate(x: number, y: number) { this.route = findRoute({x:this.player.x,y:this.player.y},{x,y},[...this.npcSprites.map(n=>n.sprite),...this.visitors?.positions??[]]); }
   private walkAnimation = "";
   declare private shadow: Phaser.GameObjects.Ellipse;
   declare private mochi: Phaser.GameObjects.Image;
@@ -120,6 +122,8 @@ export class TownScene extends Phaser.Scene {
     this.player = this.add.sprite(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(PLAYER_W, PLAYER_H);
     const original = this.textures.get("player").getSourceImage() as HTMLImageElement;
     this.installWalking("explorer-walking", original, original.width, original.height);
+    this.visitors = new TownVisitors(this,this.reduced,()=>[this.player,...this.npcSprites.map(n=>n.sprite)]);
+    void this.visitors.create();
     const unsubscribeAvatar = bus.on("avatar", ({ url, sparkly }) => this.setAvatar(url, sparkly));
     this.events.once("shutdown", unsubscribeAvatar);
 
@@ -163,7 +167,7 @@ export class TownScene extends Phaser.Scene {
     this.time.delayedCall(1500, () => e.destroy());
   }
 
-  private blocked(x: number, y: number) { return isBlocked(x,y,this.npcSprites.map(n=>n.sprite)); }
+  private blocked(x: number, y: number) { return isBlocked(x,y,[...this.npcSprites.map(n=>n.sprite),...this.visitors?.positions??[]]); }
 
   override update(_t: number, dms: number) {
     const dt = Math.min(dms / 1000, 0.05);
@@ -187,7 +191,7 @@ export class TownScene extends Phaser.Scene {
     // Gentle patrols yield to the player and each other; no floating bob animation.
     for(const n of this.npcSprites) {
       const nx=n.home.x+Math.sin(_t/4000+n.phase)*22,ny=n.home.y+Math.sin(_t/5000+n.phase)*12;
-      const others=[p,...this.npcSprites.filter(o=>o!==n).map(o=>o.sprite)];
+      const others=[p,...this.npcSprites.filter(o=>o!==n).map(o=>o.sprite),...this.visitors?.positions??[]];
       if(!isBlocked(nx,ny,others)) n.sprite.setPosition(nx,ny).setDepth(ny);
       n.shadow.setPosition(n.sprite.x,n.sprite.y-3).setDepth(n.sprite.y-1);
     }
@@ -206,6 +210,7 @@ export class TownScene extends Phaser.Scene {
       this.tweens.add({ targets: sp, y: sp.y - 24, alpha: 0, scale: 0.3, angle: 90, duration: 900, onComplete: () => sp.destroy() });
     }
     p.setDepth(p.y); this.shadow.setPosition(p.x, p.y - 3).setDepth(p.y - 1);
+    this.visitors?.update(dt,bus.paused);
 
     // proximity
     const spots = [
