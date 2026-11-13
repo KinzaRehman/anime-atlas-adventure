@@ -3,8 +3,8 @@ import { bodyPose, plantedLean, strideTimeScale, GAIT } from "@/game/gait";
 import { createMover, stepMover, MOVE } from "@/game/movement";
 import { isHair } from "@/lib/avatar-art";
 
-const open = () => false;
-const run = (m: ReturnType<typeof createMover>, ix: number, iy: number, secs: number, blocked = open) => {
+const open = (_x: number, _y: number) => false;
+const run = (m: ReturnType<typeof createMover>, ix: number, iy: number, secs: number, blocked: (x: number, y: number) => boolean = open) => {
   let s = 0; for (let t = 0; t < secs; t += 1 / 60) s = stepMover(m, ix, iy, false, false, 1 / 60, blocked); return s;
 };
 
