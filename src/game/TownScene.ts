@@ -19,12 +19,13 @@ import gardenImg from "@/assets/world/garden.webp";
 import paperImg from "@/assets/world/paper.webp";
 import { WORKSHOP, REN, STUDIO, HANA, GARDEN, KAITO, PAPER, NAMI } from "./world";
 import { bus } from "./bus";
-import { walkingSheet } from "./walking";
+import { walkingSheet, FRAME } from "./walking";
+import { createMover, stepMover, turnScale, type Mover } from "./movement";
+import { strideTimeScale } from "./gait";
 import { WaterMotion } from "./WaterMotion";
 import { ARCADE, BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, PLAZA, SORA, SPAWN, TETSU, WORLD, YUZU } from "./world";
 
-const SPEED = 260; // px/s
-const ACCEL = 12;  // velocity smoothing
+const PLAYER_H = 168, PLAYER_W = PLAYER_H * FRAME.w / (FRAME.h - 24);
 
 export class TownScene extends Phaser.Scene {
   declare player: Phaser.GameObjects.Sprite;
@@ -33,8 +34,8 @@ export class TownScene extends Phaser.Scene {
   declare private shadow: Phaser.GameObjects.Ellipse;
   declare private mochi: Phaser.GameObjects.Image;
   private markers: Partial<Record<"mochi" | "sora" | "tetsu" | "yuzu" | "ren" | "hana" | "kaito" | "nami", Phaser.GameObjects.Container>> = {};
-  private vel = new Phaser.Math.Vector2();
-  declare private keys: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT", Phaser.Input.Keyboard.Key>;
+  private mover: Mover = createMover(0, 0);
+  declare private keys: Record<"W" | "A" | "S" | "D" | "UP" | "DOWN" | "LEFT" | "RIGHT" | "SHIFT", Phaser.Input.Keyboard.Key>;
   private lastNear = "";
   private posTick = 0;
   reduced = false;
@@ -68,8 +69,8 @@ export class TownScene extends Phaser.Scene {
     for (let frame = 0; frame < sheet.count; frame++) texture.add(frame, 0, frame * sheet.frameWidth, 0, sheet.frameWidth, sheet.frameHeight);
     const previous = this.walkAnimation;
     this.walkAnimation = `${key}-walk`;
-    this.anims.create({ key: this.walkAnimation, frames: this.anims.generateFrameNumbers(`${key}-sheet`, { start: 1, end: 8 }), frameRate: 12, repeat: -1 });
-    this.player?.anims.stop(); this.player?.setTexture(`${key}-sheet`, 0).setDisplaySize(62, 168);
+    this.anims.create({ key: this.walkAnimation, frames: this.anims.generateFrameNumbers(`${key}-sheet`, { start: 1, end: 8 }), frameRate: 8, repeat: -1 });
+    this.player?.anims.stop(); this.player?.setTexture(`${key}-sheet`, 0).setDisplaySize(PLAYER_W, PLAYER_H);
     if (previous) this.anims.remove(previous);
   }
   setAvatar(url: string, sparkly = false) {
@@ -126,7 +127,7 @@ export class TownScene extends Phaser.Scene {
     }
 
     this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
-    this.player = this.add.sprite(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
+    this.player = this.add.sprite(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(PLAYER_W, PLAYER_H);
     const original = this.textures.get("player").getSourceImage() as HTMLImageElement;
     this.installWalking("explorer-walking", original, original.width, original.height);
     const unsubscribeAvatar = bus.on("avatar", ({ url, sparkly }) => this.setAvatar(url, sparkly));
@@ -147,7 +148,7 @@ export class TownScene extends Phaser.Scene {
 
     const kb = this.input.keyboard;
     if (kb) {
-      this.keys = kb.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT") as TownScene["keys"];
+      this.keys = kb.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT") as TownScene["keys"];
       kb.removeCapture("W,A,S,D,SPACE");
     }
     bus.emit("ready", true);
@@ -190,25 +191,16 @@ export class TownScene extends Phaser.Scene {
       if (k.D.isDown || k.RIGHT.isDown || k.A.isDown || k.LEFT.isDown) ix = horizontal;
       if (k.S.isDown || k.DOWN.isDown || k.W.isDown || k.UP.isDown) iy = vertical;
     }
-    if (bus.paused) { ix = 0; iy = 0; }
-    const len = Math.hypot(ix, iy); if (len > 1) { ix /= len; iy /= len; }
-    const blend = 1 - Math.exp(-ACCEL * dt);
-    this.vel.x += (ix * SPEED - this.vel.x) * blend;
-    this.vel.y += (iy * SPEED - this.vel.y) * blend;
-    // Releasing controls plants the feet immediately instead of drifting to a stop.
-    if (ix === 0) this.vel.x = 0;
-    if (iy === 0) this.vel.y = 0;
-    const p = this.player;
-    const oldX = p.x, oldY = p.y;
-    const nx = p.x + this.vel.x * dt, ny = p.y + this.vel.y * dt;
-    if (!this.blocked(nx, p.y)) p.x = nx; else this.vel.x = 0;
-    if (!this.blocked(p.x, ny)) p.y = ny; else this.vel.y = 0;
-
-    const moving = Math.hypot(p.x - oldX, p.y - oldY) > 0.2;
-    if (moving && Math.abs(this.vel.x) > 20) p.setFlipX(this.vel.x < 0);
-    if (moving && !this.reduced) p.play(this.walkAnimation, true);
-    else { p.anims.stop(); p.setFrame(0); }
-    p.setDisplaySize(62, 168).setAngle(0);
+    const p = this.player, m = this.mover;
+    if (m.x !== p.x || m.y !== p.y) { m.x = p.x; m.y = p.y; } // external teleports (dev/scripted) stay authoritative
+    const speed = stepMover(m, ix, iy, !!k?.SHIFT.isDown, bus.paused, dt, (x, y) => this.blocked(x, y));
+    p.setPosition(m.x, m.y).setFlipX(m.facing < 0);
+    const stepping = speed > 12 && m.state !== "idle";
+    if (stepping && !this.reduced) { p.play(this.walkAnimation, true); p.anims.timeScale = strideTimeScale(speed); }
+    else if (p.anims.isPlaying) { p.anims.stop(); p.setFrame(0); }
+    p.setDisplaySize(PLAYER_W * turnScale(m), PLAYER_H);
+    p.setData("moveState", m.state);
+    const moving = stepping;
     if (this.sparkly && !this.reduced && (this.sparkT -= dt) <= 0) {
       this.sparkT = moving ? 0.12 : 0.45;
       const sp = this.add.star(p.x + Phaser.Math.Between(-28, 28), p.y - Phaser.Math.Between(10, 150), 4, 2, 6, Phaser.Math.RND.pick([0xfff4c9, 0xf6bfcf, 0xffffff])).setDepth(p.y + 1).setBlendMode(Phaser.BlendModes.ADD);

@@ -43,5 +43,5 @@ use the editor.
 - Removed community items are filtered in public feeds and protected by restrictive read policies with owner/moderator access retained for review.
 - Account state uses the single shared listener in src/lib/session.ts; root subscribes to identity transitions for cache invalidation, and login return paths are sanitized once to prevent conflicting redirects.
 - Avatar editor and town share browser-composed illustrated wardrobe layers through renderAvatarArt; send the resulting texture over the game bus so both views stay consistent without geometric replacement characters.
-- Town walking frames deform the currently equipped illustration at the hips, and ambient water is a ground-aligned Phaser layer; preserve wardrobe artwork and pause decorative motion for reduced-motion users.
+- Town walking frames are baked from the equipped illustration by a hip+knee rig (src/game/walking.ts) driven by pure gait (gait.ts) and movement-state (movement.ts) modules; the compositor draws one head and mirrors one illustrated shoe per foot so outfits never stack hair or clip shoes.
 - Account anime decks use anime_deck_cards with unique user/title keys and private-by-default RLS; shared-interest discovery reads only opt-in cards and links to existing moderated Community discussions, not private messaging.
