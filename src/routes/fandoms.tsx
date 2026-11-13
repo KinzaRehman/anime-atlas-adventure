@@ -193,8 +193,8 @@ function PollCard({ uid }: { uid: string | null }) {
   if (poll.error) return <p role="alert">Couldn't load the poll.</p>;
   if (!poll.data) return <p className="text-sm text-muted-foreground">No community poll right now.</p>;
   const d = poll.data;
-  const mine = d.votes.find((v) => v.user_id === uid)?.option_index;
-  const total = d.votes.length;
+  const mine = uid ? d.mine : undefined;
+  const total = d.counts.reduce((a, b) => a + b, 0);
   const show = mine !== undefined || !uid;
   return (
     <section className="paper rounded-3xl p-4" aria-labelledby="poll-q">
@@ -203,7 +203,7 @@ function PollCard({ uid }: { uid: string | null }) {
       <h2 id="poll-q" className="font-display text-lg font-bold">{d.question}</h2>
       <div className="mt-3 space-y-2">
         {d.options.map((o, i) => {
-          const n = d.votes.filter((v) => v.option_index === i).length; const pct = total ? Math.round((n / total) * 100) : 0;
+          const n = d.counts[i] ?? 0; const pct = total ? Math.round((n / total) * 100) : 0;
           return (
             <button key={o} disabled={!uid || m.isPending} onClick={() => m.mutate(i)} aria-pressed={mine === i}
               className={`relative block min-h-11 w-full overflow-hidden rounded-xl border text-left text-sm font-semibold ${mine === i ? "border-primary" : "border-border"} bg-card`}>

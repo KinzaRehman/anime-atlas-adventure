@@ -71,6 +71,13 @@
       "when": 1794570490461,
       "tag": "0009_fix_poll_bounds_and_stale_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794579870100,
+      "tag": "0010_tighten_public_read_policies",
+      "breakpoints": true
     }
   ]
 }

@@ -593,9 +593,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_community_hidden: {
+        Args: { _id: string; _kind: string }
+        Returns: boolean
+      }
       is_community_moderator: { Args: never; Returns: boolean }
+      is_public_profile: { Args: { _uid: string }; Returns: boolean }
       is_sim_admin: { Args: never; Returns: boolean }
       is_test_user: { Args: { uid: string }; Returns: boolean }
+      poll_vote_counts: {
+        Args: { _poll_id: string }
+        Returns: {
+          option_index: number
+          votes: number
+        }[]
+      }
       resolve_community_report: {
         Args: { decision: string; report_id: string }
         Returns: undefined
