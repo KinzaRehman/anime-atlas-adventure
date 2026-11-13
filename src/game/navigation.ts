@@ -1,5 +1,5 @@
 import * as EasyStar from "easystarjs";
-import { isBlocked, WORLD, STREETS } from "./world";
+import { isBlocked, WORLD, isWalkingPath } from "./world";
 export type Point = {x:number;y:number};
 export const CELL = 20;
 export function findRoute(start:Point, end:Point, others:readonly Point[] = []):Point[] {
@@ -8,7 +8,7 @@ export function findRoute(start:Point, end:Point, others:readonly Point[] = []):
  if(blocked(end.x,end.y)) return [];
  const grid=Array.from({length:WORLD.h/CELL},(_,y)=>Array.from({length:WORLD.w/CELL},(_,x)=>{
   const px=x*CELL+CELL/2,py=y*CELL+CELL/2;
-  return blocked(px,py)?1:STREETS.some(([sx,sy,w,h])=>px>=sx&&px<=sx+w&&py>=sy&&py<=sy+h)?0:2;
+  return blocked(px,py)?1:isWalkingPath(px,py)?0:2;
  }));
  const cell=(p:Point)=>({x:Math.floor(p.x/CELL),y:Math.floor(p.y/CELL)});
  const a=cell(start),b=cell(end);

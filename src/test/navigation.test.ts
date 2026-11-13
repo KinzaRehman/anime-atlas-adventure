@@ -1,7 +1,21 @@
 import {describe,it,expect} from "vitest";
-import {BUILDINGS,DISTRICT_ENTRANCES,isBlocked,STREETS,BLOCKERS} from "@/game/world";
+import {BUILDINGS,DISTRICT_ENTRANCES,isBlocked,STREETS,BLOCKERS,HUB,SPAWN,isWalkingPath} from "@/game/world";
 import {findRoute} from "@/game/navigation";
 describe("town navigation",()=>{
+ it("keeps a circular hub connected to the surrounding grid",()=>{
+  expect(isWalkingPath(HUB.x+170,HUB.y)).toBe(true);
+  expect(isWalkingPath(HUB.x,HUB.y+170)).toBe(true);
+  expect(isBlocked(HUB.x,HUB.y)).toBe(true);
+  expect(isBlocked(SPAWN.x,SPAWN.y)).toBe(false);
+  for(const b of Object.values(BUILDINGS)) expect(findRoute(SPAWN,b.door).length).toBeGreaterThan(0);
+  const route=findRoute({x:HUB.x-170,y:HUB.y},{x:HUB.x+170,y:HUB.y});
+  expect(route.length).toBeGreaterThan(0);
+  for(let i=1;i<route.length;i++) {
+   const a=route[i-1],b=route[i];
+   if(!a||!b) continue;
+   for(let t=0;t<=1;t+=0.05) expect(isBlocked(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t)).toBe(false);
+  }
+ });
  it("keeps all building silhouettes off streets",()=>{
   for(const b of Object.values(BUILDINGS)) for(const [x,y,w,h] of STREETS) expect(b.x+b.w/2<=x||b.x-b.w/2>=x+w||b.y<=y||b.y-b.h>=y+h).toBe(true);
  });

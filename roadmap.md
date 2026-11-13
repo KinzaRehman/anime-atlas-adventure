@@ -1,4 +1,5 @@
 # AnimeAtlas roadmap
+- [x] Restore the circular fountain hub, retain grid streets for surrounding buildings, and keep routes clear around the fountain.
 ## World navigation and franchise collection overhaul
 - [x] Clear streets, align visible buildings and collision footprints, connect every entrance, and verify desktop/mobile navigation.
 - [x] Add obstacle-aware destination routes and verify NPC/character spacing: all 64 district-to-building scene walks pass; joystick travels and returns to idle.

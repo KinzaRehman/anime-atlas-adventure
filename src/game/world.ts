@@ -1,6 +1,7 @@
 // Authoritative placement geometry shared by rendering, map, collision and navigation.
 export const WORLD = { w: 1920, h: 1920 };
-export const SPAWN = { x: 1280, y: 1240 };
+export const HUB = { x: 960, y: 890, radius: 210, fountainRadius: 110 };
+export const SPAWN = { x: 960, y: 1060 };
 const building = (x: number, y: number, w = 290, h = 300) => ({ x, y, w, h, door: { x: x - 25, y: y + 35 } });
 export const LIBRARY = building(300, 530);
 export const GARDEN = building(960, 530, 290, 290);
@@ -19,6 +20,13 @@ export const STREETS = [
  [540, 0, 200, 1920], [1180, 0, 200, 1920],
  [0, 540, 1920, 200], [0, 1140, 1920, 200], [0, 1740, 1920, 180],
 ] as const;
+// The circular social hub connects to the surrounding grid without replacing it.
+export function isWalkingPath(x: number, y: number) {
+ return STREETS.some(([sx,sy,w,h]) => x>=sx&&x<=sx+w&&y>=sy&&y<=sy+h)
+  || Math.hypot(x-HUB.x,y-HUB.y)<=HUB.radius
+  || (Math.abs(x-HUB.x)<=40&&y>=740&&y<=1140)
+  || (Math.abs(y-HUB.y)<=40&&x>=740&&x<=1180);
+}
 export const DISTRICT_ENTRANCES = [{x:640,y:60},{x:1280,y:60},{x:60,y:640},{x:1860,y:640},{x:60,y:1240},{x:1860,y:1240},{x:640,y:1860},{x:1280,y:1860}];
 // Whole illustrated silhouettes are solid: the explorer cannot climb roofs or clip walls.
 export const BLOCKERS: [number,number,number,number][] = [
@@ -30,6 +38,7 @@ export const BLOCKERS: [number,number,number,number][] = [
 export const PLAYER_RADIUS = 20;
 export function isBlocked(x:number,y:number, others: readonly {x:number;y:number}[] = []) {
  if(x<25||y<25||x>1895||y>1895) return true;
- return BLOCKERS.some(([bx,by,w,h]) => x>bx-PLAYER_RADIUS && x<bx+w+PLAYER_RADIUS && y>by-PLAYER_RADIUS && y<by+h+PLAYER_RADIUS)
+ return Math.hypot(x-HUB.x,y-HUB.y)<HUB.fountainRadius+PLAYER_RADIUS
+  || BLOCKERS.some(([bx,by,w,h]) => x>bx-PLAYER_RADIUS && x<bx+w+PLAYER_RADIUS && y>by-PLAYER_RADIUS && y<by+h+PLAYER_RADIUS)
   || others.some(p=>Math.hypot(x-p.x,(y-p.y)*1.4)<34);
 }
