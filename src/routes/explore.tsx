@@ -20,6 +20,8 @@ import type { TownScene } from "@/game/TownScene";
 import { COLLECTIBLES, MOCHI_LINES, SORA_LINES, TOWN_QUESTS, TOWN_FRIENDS, XP_PER_LEVEL, type TownFriend } from "@/data/game";
 import { addXp, level, questStage, soraStage, townQuestStage, useProgress, recordMission } from "@/lib/progress";
 import { SHOP_ITEMS } from "@/data/shop";
+import { DEFAULT_AVATAR, isSparkly } from "@/data/avatar";
+import { renderAvatarArt } from "@/lib/avatar-art";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [
@@ -53,7 +55,13 @@ function Explore() {
   useEffect(() => { scene.current?.setMarker("mochi", stage !== "done" && stage !== "library"); scene.current?.setMarker("sora", sStage === "find" || sStage === "return"); scene.current?.setMarker("tetsu", tStage === "find" || tStage === "return"); scene.current?.setMarker("yuzu", yStage === "find" || yStage === "return"); scene.current?.setMarker("ren", rStage === "find" || rStage === "return"); scene.current?.setMarker("hana", hStage === "find" || hStage === "return"); }, [stage, sStage, tStage, yStage, rStage, hStage, ready]);
   useEffect(() => { for (const id of ["kaito", "nami"] as const) { const q = townQuestStage(p, id); scene.current?.setMarker(id, q === "find" || q === "return"); } }, [p, ready]);
 
-  // Town uses the original anime player artwork so the explorer matches the hand-drawn world.
+  useEffect(() => {
+    if (!ready) return;
+    let active = true;
+    const avatar = { ...DEFAULT_AVATAR, ...p.avatar };
+    renderAvatarArt(avatar).then((url) => { if (active) bus.emit("avatar", { url, sparkly: isSparkly(avatar) }); }).catch(() => {});
+    return () => { active = false; };
+  }, [p.avatar, ready]);
 
   const interact = useCallback(() => {
     if (!near || overlay) return;

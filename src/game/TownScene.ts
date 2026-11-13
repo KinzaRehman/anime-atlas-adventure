@@ -61,7 +61,12 @@ export class TownScene extends Phaser.Scene {
     this.sparkly = sparkly;
     const key = `avatar-${++this.avatarN}`;
     const img = new Image();
-    img.onload = () => { if (!this.sys?.isActive()) return; this.textures.addImage(key, img); this.player?.setTexture(key).setDisplaySize(62, 168); };
+    img.onload = () => {
+      if (!this.sys?.isActive() || key !== `avatar-${this.avatarN}`) return;
+      const previous = this.player?.texture.key;
+      this.textures.addImage(key, img); this.player?.setTexture(key).setDisplaySize(62, 168);
+      if (previous?.startsWith("avatar-")) this.textures.remove(previous);
+    };
     img.src = url;
   }
 
@@ -105,6 +110,8 @@ export class TownScene extends Phaser.Scene {
 
     this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
     this.player = this.add.image(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(62, 168);
+    const unsubscribeAvatar = bus.on("avatar", ({ url, sparkly }) => this.setAvatar(url, sparkly));
+    this.events.once("shutdown", unsubscribeAvatar);
 
     // petals
     const g = this.make.graphics({ x: 0, y: 0 }, false);

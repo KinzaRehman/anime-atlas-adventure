@@ -42,3 +42,4 @@ use the editor.
 - Community reports and notification reads are caller-scoped by RLS; moderation uses a protected role table and a role-checking database function so clients cannot grant themselves moderation powers.
 - Removed community items are filtered in public feeds and protected by restrictive read policies with owner/moderator access retained for review.
 - Account state uses the single shared listener in src/lib/session.ts; root subscribes to identity transitions for cache invalidation, and login return paths are sanitized once to prevent conflicting redirects.
+- Avatar editor and town share browser-composed illustrated wardrobe layers through renderAvatarArt; send the resulting texture over the game bus so both views stay consistent without geometric replacement characters.

@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, Lock, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AVATAR_OPTIONS, DEFAULT_AVATAR, SLOTS, avatarDataUrl, type AvatarSlot } from "@/data/avatar";
+import { AVATAR_OPTIONS, DEFAULT_AVATAR, SLOTS, type AvatarSlot } from "@/data/avatar";
+import { AvatarPortrait } from "@/components/game/AvatarPortrait";
 import { availableXp, buyAvatarItem, ownsAvatarOption, setAvatarPart, useProgress } from "@/lib/progress";
 
 export const Route = createFileRoute("/avatar")({
@@ -22,7 +23,8 @@ function AvatarStudio() {
   const [preview, setPreview] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const xp = availableXp(p);
-  const shown = preview ? { ...avatar, [AVATAR_OPTIONS.find((x) => x.id === preview)!.slot]: preview } : avatar;
+  const previewOption = AVATAR_OPTIONS.find((x) => x.id === preview);
+  const shown = previewOption ? { ...avatar, [previewOption.slot]: previewOption.id } : avatar;
   const options = AVATAR_OPTIONS.filter((x) => (tab === "shop" ? x.price > 0 : true) && (tab === "shop" || x.slot === slot));
 
   return (
@@ -31,7 +33,7 @@ function AvatarStudio() {
       <p className="text-muted-foreground">Design how you look in Sakuragaoka. Paid looks are bought with XP you earn from quests and chats.</p>
       <div className="mt-6 grid gap-6 md:grid-cols-[260px_1fr]">
         <div className="glass flex flex-col items-center rounded-3xl p-5 md:sticky md:top-24 md:self-start">
-          <img src={avatarDataUrl(shown)} alt="Your explorer avatar" className="h-72 w-auto drop-shadow-lg" />
+          <AvatarPortrait avatar={shown} />
           {preview && <p className="mt-2 text-sm font-semibold text-primary">Previewing</p>}
           <div className="mt-3 flex w-full justify-between border-t border-border pt-3 text-sm"><span>Available XP</span><strong className="tabular-nums">{xp}</strong></div>
         </div>
