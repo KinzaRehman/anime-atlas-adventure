@@ -1,4 +1,11 @@
 # AnimeAtlas roadmap
+## World navigation and franchise collection overhaul
+- [ ] Clear streets, align visible buildings and collision footprints, connect every entrance, and verify desktop/mobile navigation.
+- [ ] Add obstacle-aware destination routes and verify NPC/character spacing.
+- [ ] Consolidate anime into stable franchise cards without losing existing decks; fetch/cache authoritative metadata and curated installments.
+- [ ] Add account-backed installment progress/favorites, collection tabs, search/filter/sort, and end-to-end checks.
+- [ ] Resolve requested 100-title list versus saved family-friendly catalogue restrictions before populating the replacement catalogue.
+
 - [ ] Verify a few saved catalogue decks and real shared-player matches: blocked by no registered accounts; three-catalogue-title fixtures pass overlap ranking and self/private/unrelated exclusion checks without adding fake live players
 - [x] Animate stream and fountain water, and replace explorer sliding with illustrated walking frames; desktop/phone frames, immediate stop, and phone joystick start/release verified
 - [x] Anime decks: 100 curated titles across the five requested categories, account-backed rated cards, opt-in shared interests and Community discussion links; public desktop/mobile filters and rule tests verified
