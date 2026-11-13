@@ -48,3 +48,5 @@ use the editor.
 - Simulation: test accounts are rows in sim_users; RLS restrictive policies hide their content from non-admins, and src/lib/sim/* drives actions as each account through normal RLS (service client only for account lifecycle and logs) so the simulation exercises real rules.
 - Chat turns go through chatTurn in src/lib/chat-core.ts for both the Chat page and the simulation, keeping one AI and saving path.
 - Synthetic identities are authored in sim/stories.ts; dialogue branches use successful per-character exchange memories in sim_users.relationships and actual saved replies, so reruns preserve history without fabricated conversations or extra AI usage.
+- World buildings, streets and collision silhouettes share src/game/world.ts; EasyStar routes are computed in navigation.ts and manual input cancels them, keeping walking and map destinations consistent.
+- Anime metadata is a committed AniList snapshot with explicit franchise membership; MAL IDs are positive and AniList-only installment IDs are negative to avoid source-ID collisions, while private account progress/favorites remain separate from metadata and existing rated decks.

@@ -15,7 +15,7 @@ export interface Character extends Collectible { portrait?: string; role: string
 // Discoverable characters. `portrait` is filled in by the UI layer (asset imports).
 export const COLLECTIBLES: Character[] = [
   { id: "mochi", name: "Mochi", title: "Manga Librarian", role: "Keeper of the Sakuragaoka Library", emoji: "", rarity: "rare", hue: "pink",
-    how: "Find Mochi by the fountain and help her at the library",
+    how: "Find Mochi outside the library and help her sort the shelves",
     bio: "Mochi has read every volume on the library's shelves at least twice. She runs the Sunday sketch club and believes every reader deserves a story that feels like home.",
     likes: ["Slice-of-life manga", "Strawberry milk", "Drawing tiny buildings"] },
   { id: "sora", name: "Sora", title: "Café Barista", role: "Barista at Yasuragi Café", emoji: "", rarity: "common", hue: "lavender",

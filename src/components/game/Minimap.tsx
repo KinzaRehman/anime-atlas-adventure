@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ground from "@/assets/world/ground.webp";
+import ground from "@/assets/world/streets.jpg";
 import { bus } from "@/game/bus";
 import { ARCADE, CAFE, LIBRARY, MOCHI, PLAZA, SORA, TETSU, WORLD, YUZU, WORKSHOP, STUDIO, REN, HANA, GARDEN, PAPER, KAITO, NAMI } from "@/game/world";
 

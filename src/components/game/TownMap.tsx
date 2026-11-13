@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Circle, Flag, Lock, MapPin } from "lucide-react";
+import { Check, Circle, Flag, Lock, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { COLLECTIBLES, TOWN_MAP_QUESTS } from "@/data/game";
@@ -8,7 +8,7 @@ import { useProgress } from "@/lib/progress";
 import { mapQuestStage, type MapQuestStage } from "@/lib/town-map";
 import { bus } from "@/game/bus";
 import { ARCADE, CAFE, GARDEN, LIBRARY, PAPER, PLAZA, SPAWN, STUDIO, WORKSHOP, WORLD } from "@/game/world";
-import ground from "@/assets/world/ground.webp";
+import ground from "@/assets/world/streets.jpg";
 import library from "@/assets/world/library.webp";
 import cafe from "@/assets/world/cafe.webp";
 import arcade from "@/assets/world/arcade.webp";
@@ -70,6 +70,7 @@ export function TownMap({ onClose }: { onClose: () => void }) {
             <img src={PORTRAITS[quest.character]} alt={character?.name ?? quest.character} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
             <div className="min-w-0"><h3 className="font-display text-lg font-bold">{quest.title}</h3><p className="mt-1 text-sm text-muted-foreground">{next}</p></div>
           </div>
+          <Button className="mb-3 w-full" onClick={()=>{bus.emit("destination",BUILDINGS[quest.location as keyof typeof BUILDINGS].door);onClose();}}><Navigation className="h-4 w-4"/>Walk to {quest.building}</Button>
           <ol className="divide-y divide-border">
             {TOWN_MAP_QUESTS.map((q, index) => {
               const status = mapQuestStage(progress, q.character);

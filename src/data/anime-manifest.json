@@ -1,0 +1,979 @@
+[
+  {
+    "title": "Naruto",
+    "franchiseId": 20,
+    "installmentIds": [
+      20,
+      1735
+    ]
+  },
+  {
+    "title": "One Piece",
+    "franchiseId": 21,
+    "installmentIds": [
+      21,
+      4155,
+      12859,
+      31490,
+      38234,
+      50410
+    ]
+  },
+  {
+    "title": "Bleach",
+    "franchiseId": 269,
+    "installmentIds": [
+      269,
+      41467,
+      53998,
+      56784,
+      60636
+    ]
+  },
+  {
+    "title": "Dragon Ball",
+    "franchiseId": 223,
+    "installmentIds": [
+      223,
+      813,
+      225,
+      30694,
+      56894
+    ]
+  },
+  {
+    "title": "Attack on Titan",
+    "franchiseId": 16498,
+    "installmentIds": [
+      16498,
+      25777,
+      35760,
+      38524,
+      40028,
+      48583,
+      51535,
+      -162314
+    ]
+  },
+  {
+    "title": "Demon Slayer",
+    "franchiseId": 38000,
+    "installmentIds": [
+      38000,
+      49926,
+      47778,
+      51019,
+      55701,
+      40456,
+      59192
+    ]
+  },
+  {
+    "title": "Jujutsu Kaisen",
+    "franchiseId": 40748,
+    "installmentIds": [
+      40748,
+      51009,
+      48561,
+      57658
+    ]
+  },
+  {
+    "title": "My Hero Academia",
+    "franchiseId": 31964,
+    "installmentIds": [
+      31964,
+      33486,
+      36456,
+      38408,
+      41587,
+      49918,
+      54789,
+      60098,
+      36896,
+      39565,
+      44200,
+      56196
+    ]
+  },
+  {
+    "title": "Hunter x Hunter",
+    "franchiseId": 11061,
+    "installmentIds": [
+      11061,
+      136,
+      13271,
+      19951
+    ]
+  },
+  {
+    "title": "Fullmetal Alchemist",
+    "franchiseId": 121,
+    "installmentIds": [
+      121,
+      5114,
+      430,
+      9135
+    ]
+  },
+  {
+    "title": "Black Clover",
+    "franchiseId": 34572,
+    "installmentIds": [
+      34572,
+      48585
+    ]
+  },
+  {
+    "title": "Chainsaw Man",
+    "franchiseId": 44511,
+    "installmentIds": [
+      44511,
+      57555
+    ]
+  },
+  {
+    "title": "One Punch Man",
+    "franchiseId": 30276,
+    "installmentIds": [
+      30276,
+      34134,
+      52807
+    ]
+  },
+  {
+    "title": "Mob Psycho 100",
+    "franchiseId": 32182,
+    "installmentIds": [
+      32182,
+      37510,
+      50172
+    ]
+  },
+  {
+    "title": "JoJo's Bizarre Adventure",
+    "franchiseId": 14719,
+    "installmentIds": [
+      14719,
+      20899,
+      26055,
+      31933,
+      37991,
+      48661,
+      51367
+    ]
+  },
+  {
+    "title": "Fairy Tail",
+    "franchiseId": 6702,
+    "installmentIds": [
+      6702,
+      22043,
+      35972,
+      49785,
+      12049,
+      30778
+    ]
+  },
+  {
+    "title": "Fire Force",
+    "franchiseId": 38671,
+    "installmentIds": [
+      38671,
+      40956,
+      51818,
+      59229
+    ]
+  },
+  {
+    "title": "Blue Exorcist",
+    "franchiseId": 9919,
+    "installmentIds": [
+      9919,
+      33506,
+      53889,
+      58516,
+      59226,
+      11737
+    ]
+  },
+  {
+    "title": "Soul Eater",
+    "franchiseId": 3588,
+    "installmentIds": [
+      3588
+    ]
+  },
+  {
+    "title": "D.Gray-man",
+    "franchiseId": 1482,
+    "installmentIds": [
+      1482,
+      32370
+    ]
+  },
+  {
+    "title": "Yu Yu Hakusho",
+    "franchiseId": 392,
+    "installmentIds": [
+      392
+    ]
+  },
+  {
+    "title": "Rurouni Kenshin",
+    "franchiseId": 45,
+    "installmentIds": [
+      45,
+      50613,
+      57554
+    ]
+  },
+  {
+    "title": "Gintama",
+    "franchiseId": 918,
+    "installmentIds": [
+      918,
+      9969,
+      15417,
+      28977,
+      34096,
+      35843,
+      36838,
+      37491,
+      15335,
+      39486,
+      44087
+    ]
+  },
+  {
+    "title": "Dr. Stone",
+    "franchiseId": 38691,
+    "installmentIds": [
+      38691,
+      40852,
+      48549,
+      55644,
+      57592,
+      50612,
+      61322
+    ]
+  },
+  {
+    "title": "The Seven Deadly Sins",
+    "franchiseId": 23755,
+    "installmentIds": [
+      23755,
+      34577,
+      35946,
+      39701,
+      41491,
+      46420
+    ]
+  },
+  {
+    "title": "Sword Art Online",
+    "franchiseId": 11757,
+    "installmentIds": [
+      11757,
+      21881,
+      36474,
+      39597,
+      40540,
+      31765,
+      42916,
+      50275
+    ]
+  },
+  {
+    "title": "Re:Zero",
+    "franchiseId": 31240,
+    "installmentIds": [
+      31240,
+      39587,
+      42203,
+      54857,
+      36286,
+      61316
+    ]
+  },
+  {
+    "title": "That Time I Got Reincarnated as a Slime",
+    "franchiseId": 37430,
+    "installmentIds": [
+      37430,
+      39551,
+      41487,
+      53580,
+      49877
+    ]
+  },
+  {
+    "title": "Mushoku Tensei",
+    "franchiseId": 39535,
+    "installmentIds": [
+      39535,
+      45576,
+      51179,
+      55888
+    ]
+  },
+  {
+    "title": "Overlord",
+    "franchiseId": 29803,
+    "installmentIds": [
+      29803,
+      35073,
+      37675,
+      48895,
+      48896
+    ]
+  },
+  {
+    "title": "KonoSuba",
+    "franchiseId": 30831,
+    "installmentIds": [
+      30831,
+      32937,
+      49458,
+      38040
+    ]
+  },
+  {
+    "title": "No Game No Life",
+    "franchiseId": 19815,
+    "installmentIds": [
+      19815,
+      33674
+    ]
+  },
+  {
+    "title": "The Rising of the Shield Hero",
+    "franchiseId": 35790,
+    "installmentIds": [
+      35790,
+      40356,
+      40357,
+      57907
+    ]
+  },
+  {
+    "title": "Frieren: Beyond Journey's End",
+    "franchiseId": 52991,
+    "installmentIds": [
+      52991,
+      59978
+    ]
+  },
+  {
+    "title": "Made in Abyss",
+    "franchiseId": 34599,
+    "installmentIds": [
+      34599,
+      41084,
+      36862
+    ]
+  },
+  {
+    "title": "The Ancient Magus' Bride",
+    "franchiseId": 35062,
+    "installmentIds": [
+      35062,
+      52955,
+      55742
+    ]
+  },
+  {
+    "title": "Fate/stay night",
+    "franchiseId": 356,
+    "installmentIds": [
+      356,
+      22297,
+      28701,
+      25537,
+      33049,
+      33050,
+      6922
+    ]
+  },
+  {
+    "title": "Noragami",
+    "franchiseId": 20507,
+    "installmentIds": [
+      20507,
+      30503
+    ]
+  },
+  {
+    "title": "Inuyasha",
+    "franchiseId": 249,
+    "installmentIds": [
+      249,
+      6811,
+      452,
+      451,
+      450,
+      449
+    ]
+  },
+  {
+    "title": "The Apothecary Diaries",
+    "franchiseId": 54492,
+    "installmentIds": [
+      54492,
+      58514
+    ]
+  },
+  {
+    "title": "Haikyu!!",
+    "franchiseId": 20583,
+    "installmentIds": [
+      20583,
+      28891,
+      32935,
+      38883,
+      40776,
+      52742
+    ]
+  },
+  {
+    "title": "Blue Lock",
+    "franchiseId": 49596,
+    "installmentIds": [
+      49596,
+      54865,
+      54866
+    ]
+  },
+  {
+    "title": "Kuroko's Basketball",
+    "franchiseId": 11771,
+    "installmentIds": [
+      11771,
+      16894,
+      24415,
+      31658
+    ]
+  },
+  {
+    "title": "Ace of Diamond",
+    "franchiseId": 18689,
+    "installmentIds": [
+      18689,
+      30230,
+      38731,
+      58877,
+      64505
+    ]
+  },
+  {
+    "title": "Hajime no Ippo",
+    "franchiseId": 263,
+    "installmentIds": [
+      263,
+      5258,
+      19647,
+      264,
+      265
+    ]
+  },
+  {
+    "title": "Slam Dunk",
+    "franchiseId": 170,
+    "installmentIds": [
+      170,
+      45649
+    ]
+  },
+  {
+    "title": "Yuri!!! on Ice",
+    "franchiseId": 32995,
+    "installmentIds": [
+      32995
+    ]
+  },
+  {
+    "title": "Free!",
+    "franchiseId": 18507,
+    "installmentIds": [
+      18507,
+      22265,
+      36704,
+      30415,
+      38400,
+      39014,
+      48830
+    ]
+  },
+  {
+    "title": "Run with the Wind",
+    "franchiseId": 37965,
+    "installmentIds": [
+      37965
+    ]
+  },
+  {
+    "title": "Major",
+    "franchiseId": 627,
+    "installmentIds": [
+      627,
+      558,
+      1842,
+      3226,
+      5028,
+      7655,
+      36565,
+      40504,
+      5029,
+      9890,
+      11917
+    ]
+  },
+  {
+    "title": "Big Windup!",
+    "franchiseId": 2159,
+    "installmentIds": [
+      2159,
+      7720
+    ]
+  },
+  {
+    "title": "Yowamushi Pedal",
+    "franchiseId": 18179,
+    "installmentIds": [
+      18179,
+      24277,
+      31783,
+      35789,
+      50552,
+      30413
+    ]
+  },
+  {
+    "title": "Ping Pong the Animation",
+    "franchiseId": 22135,
+    "installmentIds": [
+      22135
+    ]
+  },
+  {
+    "title": "SK8 the Infinity",
+    "franchiseId": 42923,
+    "installmentIds": [
+      42923
+    ]
+  },
+  {
+    "title": "Eyeshield 21",
+    "franchiseId": 15,
+    "installmentIds": [
+      15
+    ]
+  },
+  {
+    "title": "Your Lie in April",
+    "franchiseId": 23273,
+    "installmentIds": [
+      23273
+    ]
+  },
+  {
+    "title": "Toradora!",
+    "franchiseId": 4224,
+    "installmentIds": [
+      4224
+    ]
+  },
+  {
+    "title": "Kaguya-sama: Love Is War",
+    "franchiseId": 37999,
+    "installmentIds": [
+      37999,
+      40591,
+      43608,
+      52198
+    ]
+  },
+  {
+    "title": "Horimiya",
+    "franchiseId": 42897,
+    "installmentIds": [
+      42897,
+      54856
+    ]
+  },
+  {
+    "title": "Fruits Basket",
+    "franchiseId": 38680,
+    "installmentIds": [
+      38680,
+      40417,
+      42938,
+      49310,
+      120
+    ]
+  },
+  {
+    "title": "Clannad",
+    "franchiseId": 2167,
+    "installmentIds": [
+      2167,
+      4181,
+      1723
+    ]
+  },
+  {
+    "title": "My Dress-Up Darling",
+    "franchiseId": 48736,
+    "installmentIds": [
+      48736,
+      53065
+    ]
+  },
+  {
+    "title": "Komi Can't Communicate",
+    "franchiseId": 48926,
+    "installmentIds": [
+      48926,
+      50631
+    ]
+  },
+  {
+    "title": "Wotakoi: Love Is Hard for Otaku",
+    "franchiseId": 35968,
+    "installmentIds": [
+      35968
+    ]
+  },
+  {
+    "title": "Lovely Complex",
+    "franchiseId": 2034,
+    "installmentIds": [
+      2034
+    ]
+  },
+  {
+    "title": "Maid Sama!",
+    "franchiseId": 7054,
+    "installmentIds": [
+      7054
+    ]
+  },
+  {
+    "title": "Ouran High School Host Club",
+    "franchiseId": 853,
+    "installmentIds": [
+      853
+    ]
+  },
+  {
+    "title": "Kimi ni Todoke",
+    "franchiseId": 6045,
+    "installmentIds": [
+      6045,
+      9656,
+      56538
+    ]
+  },
+  {
+    "title": "Violet Evergarden",
+    "franchiseId": 33352,
+    "installmentIds": [
+      33352,
+      39741,
+      37987
+    ]
+  },
+  {
+    "title": "Anohana: The Flower We Saw That Day",
+    "franchiseId": 9989,
+    "installmentIds": [
+      9989
+    ]
+  },
+  {
+    "title": "March Comes in Like a Lion",
+    "franchiseId": 31646,
+    "installmentIds": [
+      31646,
+      35180
+    ]
+  },
+  {
+    "title": "Bocchi the Rock!",
+    "franchiseId": 47917,
+    "installmentIds": [
+      47917
+    ]
+  },
+  {
+    "title": "Spy x Family",
+    "franchiseId": 50265,
+    "installmentIds": [
+      50265,
+      50602,
+      53887,
+      53888,
+      59027
+    ]
+  },
+  {
+    "title": "Nichijou",
+    "franchiseId": 10165,
+    "installmentIds": [
+      10165
+    ]
+  },
+  {
+    "title": "The Disastrous Life of Saiki K.",
+    "franchiseId": 33255,
+    "installmentIds": [
+      33255,
+      34612,
+      38249,
+      40542
+    ]
+  },
+  {
+    "title": "Death Note",
+    "franchiseId": 1535,
+    "installmentIds": [
+      1535
+    ]
+  },
+  {
+    "title": "Code Geass",
+    "franchiseId": 1575,
+    "installmentIds": [
+      1575,
+      2904,
+      34437
+    ]
+  },
+  {
+    "title": "Steins;Gate",
+    "franchiseId": 9253,
+    "installmentIds": [
+      9253,
+      30484,
+      11577,
+      32188
+    ]
+  },
+  {
+    "title": "Monster",
+    "franchiseId": 19,
+    "installmentIds": [
+      19
+    ]
+  },
+  {
+    "title": "Psycho-Pass",
+    "franchiseId": 13601,
+    "installmentIds": [
+      13601,
+      23281,
+      39491,
+      21339,
+      37440,
+      37441,
+      37442,
+      40858,
+      52747
+    ]
+  },
+  {
+    "title": "Parasyte: The Maxim",
+    "franchiseId": 22535,
+    "installmentIds": [
+      22535
+    ]
+  },
+  {
+    "title": "Tokyo Ghoul",
+    "franchiseId": 22319,
+    "installmentIds": [
+      22319,
+      27899,
+      36511,
+      37799
+    ]
+  },
+  {
+    "title": "Erased",
+    "franchiseId": 31043,
+    "installmentIds": [
+      31043
+    ]
+  },
+  {
+    "title": "The Promised Neverland",
+    "franchiseId": 37779,
+    "installmentIds": [
+      37779,
+      39617
+    ]
+  },
+  {
+    "title": "Death Parade",
+    "franchiseId": 28223,
+    "installmentIds": [
+      28223
+    ]
+  },
+  {
+    "title": "Serial Experiments Lain",
+    "franchiseId": 339,
+    "installmentIds": [
+      339
+    ]
+  },
+  {
+    "title": "Neon Genesis Evangelion",
+    "franchiseId": 30,
+    "installmentIds": [
+      30,
+      32,
+      2759,
+      3784,
+      3785,
+      3786
+    ]
+  },
+  {
+    "title": "Cowboy Bebop",
+    "franchiseId": 1,
+    "installmentIds": [
+      1,
+      5
+    ]
+  },
+  {
+    "title": "Samurai Champloo",
+    "franchiseId": 205,
+    "installmentIds": [
+      205
+    ]
+  },
+  {
+    "title": "Cyberpunk: Edgerunners",
+    "franchiseId": 42310,
+    "installmentIds": [
+      42310
+    ]
+  },
+  {
+    "title": "Pokémon",
+    "franchiseId": 527,
+    "installmentIds": [
+      527,
+      1564,
+      1565,
+      9107,
+      19291,
+      31592,
+      34034,
+      40351,
+      53876
+    ]
+  },
+  {
+    "title": "Digimon Adventure",
+    "franchiseId": 552,
+    "installmentIds": [
+      552,
+      1313,
+      2397,
+      2398,
+      38088,
+      25687,
+      32108,
+      32551,
+      34299,
+      34962,
+      36466,
+      41074
+    ]
+  },
+  {
+    "title": "Sailor Moon",
+    "franchiseId": 530,
+    "installmentIds": [
+      530,
+      740,
+      532,
+      1239,
+      996,
+      531,
+      1240,
+      997,
+      14751,
+      31733,
+      40024,
+      40429,
+      51716,
+      -160850
+    ]
+  },
+  {
+    "title": "Cardcaptor Sakura",
+    "franchiseId": 232,
+    "installmentIds": [
+      232,
+      33354,
+      371,
+      372
+    ]
+  },
+  {
+    "title": "Detective Conan",
+    "franchiseId": 235,
+    "installmentIds": [
+      235,
+      5460,
+      9963,
+      28479
+    ]
+  },
+  {
+    "title": "Vinland Saga",
+    "franchiseId": 37521,
+    "installmentIds": [
+      37521,
+      49387
+    ]
+  },
+  {
+    "title": "Berserk",
+    "franchiseId": 33,
+    "installmentIds": [
+      33,
+      32379,
+      34055,
+      10218,
+      12113,
+      12115,
+      52976
+    ]
+  },
+  {
+    "title": "A Silent Voice",
+    "franchiseId": 28851,
+    "installmentIds": [
+      28851
+    ]
+  },
+  {
+    "title": "Your Name",
+    "franchiseId": 32281,
+    "installmentIds": [
+      32281
+    ]
+  },
+  {
+    "title": "Spirited Away",
+    "franchiseId": 199,
+    "installmentIds": [
+      199
+    ]
+  }
+]

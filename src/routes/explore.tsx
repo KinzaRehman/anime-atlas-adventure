@@ -32,7 +32,7 @@ export const Route = createFileRoute("/explore")({
   component: Explore,
 });
 
-const OBJECTIVE = { find: "Find someone by the fountain", library: "Sort the shelves at the Manga Library", return: "Return to Mochi" };
+const OBJECTIVE = { find: "Meet Mochi outside the Manga Library", library: "Sort the shelves at the Manga Library", return: "Return to Mochi" };
 const SORA_OBJ = { find: "Say hello to Sora outside the café", library: "Win Sora's Café Quiz", return: "Return to Sora", done: "", locked: "" };
 type Overlay = null | "dialogue" | "sora" | "library" | "cafe" | "unlock" | "unlock-sora" | "fade" | TownFriend | "arcade" | "plaza" | "workshop" | "studio" | "garden" | "paper" | `unlock-${TownFriend}` | "missions" | "map";
 

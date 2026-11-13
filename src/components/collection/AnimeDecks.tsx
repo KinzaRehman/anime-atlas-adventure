@@ -14,7 +14,7 @@ import { useUser } from "@/lib/session";
 const blank: CardDraft = { title: "", rating: 0, description: "", character: "", rewatch: true, shared: false };
 export function AnimeDecks() {
   const user = useUser(); const qc = useQueryClient();
-  const [tab, setTab] = useState<"catalogue" | "deck" | "players">("catalogue");
+  const [tab, setTab] = useState<"catalogue" | "deck" | "players">("deck");
   const [query, setQuery] = useState(""); const [genre, setGenre] = useState("All");
   const [form, setForm] = useState<CardDraft | null>(null);
   const [selected, setSelected] = useState("All");
@@ -30,10 +30,10 @@ export function AnimeDecks() {
     <header className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-3xl font-bold">Anime deck</h2><p className="mt-1 text-muted-foreground">{ANIME_CATALOGUE.length} curated titles · {(deck.data ?? []).length} in your deck</p></div>
       {user ? <Button onClick={() => { save.reset(); setForm({ ...blank }); }}><Plus className="h-4 w-4" />Custom card</Button> : <Button asChild><Link to="/auth" search={{ redirect: "/collection" }}>Sign in to save your deck</Link></Button>}
     </header>
-    <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Anime deck views">{[["catalogue", "Catalogue"], ["deck", "My deck"], ["players", "Shared interests"]].map(([value, label]) => <Button key={value} role="tab" aria-selected={tab === value} variant={tab === value ? "default" : "outline"} onClick={() => setTab(value as typeof tab)}>{label}</Button>)}</div>
+    <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Anime deck views">{[["deck", "Rated cards"], ["players", "Shared interests"]].map(([value, label]) => <Button key={value} role="tab" aria-selected={tab === value} variant={tab === value ? "default" : "outline"} onClick={() => setTab(value as typeof tab)}>{label}</Button>)}</div>
     {tab === "catalogue" && <>
       <div className="mt-5 flex flex-wrap gap-3"><label className="relative min-w-0 flex-1"><span className="sr-only">Search anime</span><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" placeholder="Search anime" value={query} onChange={(e) => setQuery(e.target.value)} /></label><select aria-label="Anime genre" className="rounded-md border border-input bg-background px-3" value={genre} onChange={(e) => setGenre(e.target.value)}>{["All", ...ANIME_GENRES].map((g) => <option key={g}>{g}</option>)}</select></div>
-      <p className="mt-3 text-xs text-muted-foreground">Curated, not a live top-100 ranking. Seasons and films have separate cards. Check age guidance before watching.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Curated, not a live top-100 ranking. Seasons and films are grouped by franchise. Check age guidance before watching.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{available.map((anime) => {
         const owned = deck.data?.find((a) => a.anime_key === anime.key);
         return <article key={anime.key} className="flex flex-col rounded-lg border border-border bg-card p-4"><p className="text-xs font-semibold text-primary">{anime.genres.join(" · ")}</p><h3 className="mt-1 text-lg font-bold">{anime.title}</h3><p className="mb-4 mt-2 text-sm text-muted-foreground">{anime.description}</p><Button className="mt-auto" variant={owned ? "secondary" : "outline"} disabled={!user} onClick={() => { if (owned) edit(owned); else { save.reset(); setForm({ ...blank, title: anime.title }); } }}>{owned ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{owned ? "In deck · Edit" : "Add completed anime"}</Button></article>;

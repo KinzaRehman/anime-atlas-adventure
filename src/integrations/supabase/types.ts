@@ -61,6 +61,54 @@ export type Database = {
           },
         ]
       }
+      anime_franchise_favorites: {
+        Row: {
+          created_at: string
+          franchise_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          franchise_id: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          franchise_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      anime_installment_progress: {
+        Row: {
+          completed_at: string | null
+          episodes_watched: number
+          franchise_id: number
+          installment_id: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          episodes_watched?: number
+          franchise_id: number
+          installment_id: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          completed_at?: string | null
+          episodes_watched?: number
+          franchise_id?: number
+          installment_id?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           character: string

@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import ground from "@/assets/world/ground.webp";
+import ground from "@/assets/world/streets.jpg";
 import libraryImg from "@/assets/world/library.webp";
 import playerImg from "@/assets/world/player.webp";
 import mochiImg from "@/assets/world/mochi.webp";
@@ -21,6 +21,8 @@ import { WORKSHOP, REN, STUDIO, HANA, GARDEN, KAITO, PAPER, NAMI } from "./world
 import { bus } from "./bus";
 import { walkingSheet, FRAME } from "./walking";
 import { createMover, stepMover, turnScale, type Mover } from "./movement";
+import { findRoute, type Point } from "./navigation";
+import { BUILDINGS, NPCS, isBlocked } from "./world";
 import { strideTimeScale } from "./gait";
 import { WaterMotion } from "./WaterMotion";
 import { ARCADE, BLOCKERS, CAFE, INTERACT_RADIUS, LIBRARY, MOCHI, PLAZA, SORA, SPAWN, TETSU, WORLD, YUZU } from "./world";
@@ -30,6 +32,9 @@ const PLAYER_H = 168, PLAYER_W = PLAYER_H * FRAME.w / (FRAME.h - 24);
 export class TownScene extends Phaser.Scene {
   declare player: Phaser.GameObjects.Sprite;
   private water?: WaterMotion;
+  private route: Point[] = [];
+  private npcSprites: {sprite: Phaser.GameObjects.Image; home: Point; shadow: Phaser.GameObjects.Ellipse; phase: number}[] = [];
+  navigate(x: number, y: number) { this.route = findRoute({x:this.player.x,y:this.player.y},{x,y},this.npcSprites.map(n=>n.sprite)); }
   private walkAnimation = "";
   declare private shadow: Phaser.GameObjects.Ellipse;
   declare private mochi: Phaser.GameObjects.Image;
@@ -94,38 +99,23 @@ export class TownScene extends Phaser.Scene {
     // warm evening grade
     this.add.rectangle(0, 0, WORLD.w, WORLD.h, 0xffb27a, 0.08).setOrigin(0).setDepth(5000).setBlendMode(Phaser.BlendModes.MULTIPLY);
 
-    const lib = this.add.image(LIBRARY.x, LIBRARY.y + 140, "library").setOrigin(0.5, 1);
-    lib.setScale(LIBRARY.w / lib.width).setDepth(LIBRARY.y + 140);
-    // door glow
-    const glow = this.add.circle(LIBRARY.door.x, LIBRARY.door.y, 70, 0xffd27a, 0.25).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
-    if (!this.reduced) this.tweens.add({ targets: glow, alpha: 0.08, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-
-    this.mochi = this.add.image(MOCHI.x, MOCHI.y, "mochi").setOrigin(0.5, 1).setDisplaySize(64, 187).setDepth(MOCHI.y);
-    this.add.ellipse(MOCHI.x, MOCHI.y - 4, 56, 16, 0x24212a, 0.25).setDepth(MOCHI.y - 1);
-    if (!this.reduced) this.tweens.add({ targets: this.mochi, y: MOCHI.y - 4, duration: 900, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.markers.mochi = this.makeMarker(MOCHI.x, MOCHI.y - 210);
-
-    const cafe = this.add.image(CAFE.x, CAFE.y + 140, "cafe").setOrigin(0.5, 1);
-    cafe.setScale(CAFE.w / cafe.width).setDepth(CAFE.y + 140);
-    const cglow = this.add.circle(CAFE.door.x, CAFE.door.y, 70, 0xffd27a, 0.22).setBlendMode(Phaser.BlendModes.ADD).setDepth(1);
-    if (!this.reduced) this.tweens.add({ targets: cglow, alpha: 0.06, duration: 1700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    const sora = this.add.image(SORA.x, SORA.y, "sora").setOrigin(0.5, 1).setDisplaySize(54, 190).setDepth(SORA.y);
-    this.add.ellipse(SORA.x, SORA.y - 4, 52, 15, 0x24212a, 0.25).setDepth(SORA.y - 1);
-    if (!this.reduced) this.tweens.add({ targets: sora, y: SORA.y - 3, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.markers.sora = this.makeMarker(SORA.x, SORA.y - 215).setVisible(false);
-
-    for (const [key, spot] of [["arcade", ARCADE], ["plaza", PLAZA], ["workshop", WORKSHOP], ["studio", STUDIO], ["garden", GARDEN], ["paper", PAPER]] as const) {
-      const offset = key === "arcade" || key === "plaza" ? 140 : 0;
-      const building = this.add.image(spot.x, spot.y + offset, key).setOrigin(0.5, 1);
-      building.setScale(spot.w / building.width).setDepth(spot.y + offset);
+    for (const [key, spot] of Object.entries(BUILDINGS)) {
+      this.add.image(spot.x,spot.y,key).setOrigin(0.5,1).setDisplaySize(spot.w,spot.h).setDepth(spot.y);
+      const entrance = this.add.graphics().setDepth(-5);
+      entrance.fillStyle(0xf6f0e6,0.25).fillRect(spot.door.x-35,spot.y,70,80);
+      entrance.lineStyle(1,0x24212a,0.2);
+      for(let y=spot.y+10;y<spot.y+80;y+=15) entrance.lineBetween(spot.door.x-35,y,spot.door.x+35,y);
     }
-    for (const [id, spot, width] of [["tetsu", TETSU, 58], ["yuzu", YUZU, 56], ["ren", REN, 70], ["hana", HANA, 65], ["kaito", KAITO, 75], ["nami", NAMI, 72]] as const) {
-      this.add.ellipse(spot.x, spot.y - 4, 52, 15, 0x24212a, 0.25).setDepth(spot.y - 1);
-      const npc = this.add.image(spot.x, spot.y, id).setOrigin(0.5, 1).setDisplaySize(width, 190).setDepth(spot.y);
-      if (!this.reduced) this.tweens.add({ targets: npc, y: spot.y - 3, duration: 1200, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-      this.markers[id] = this.makeMarker(spot.x, spot.y - 215).setVisible(false);
+    for (const [id, spot] of Object.entries(NPCS)) {
+      const shadow=this.add.ellipse(spot.x,spot.y-3,48,14,0x24212a,0.25).setDepth(spot.y-1);
+      const npc=this.add.image(spot.x,spot.y,id).setOrigin(0.5,1).setDisplaySize(id==="mochi"?58:64,160).setDepth(spot.y);
+      this.npcSprites.push({sprite:npc,home:spot,shadow,phase:this.npcSprites.length});
+      if(id==="mochi") this.mochi=npc;
+      this.markers[id as keyof typeof NPCS]=this.makeMarker(spot.x,spot.y-185).setVisible(id==="mochi");
     }
-
+    const offDestination=bus.on("destination",p=>this.navigate(p.x,p.y));
+    this.events.once("shutdown",offDestination);
+    this.input.on("pointerdown",(pointer:Phaser.Input.Pointer)=>{if(!bus.paused) this.navigate(pointer.worldX,pointer.worldY);});
     this.shadow = this.add.ellipse(SPAWN.x, SPAWN.y, 52, 16, 0x24212a, 0.28);
     this.player = this.add.sprite(SPAWN.x, SPAWN.y, "player").setOrigin(0.5, 1).setDisplaySize(PLAYER_W, PLAYER_H);
     const original = this.textures.get("player").getSourceImage() as HTMLImageElement;
@@ -173,12 +163,7 @@ export class TownScene extends Phaser.Scene {
     this.time.delayedCall(1500, () => e.destroy());
   }
 
-  private blocked(x: number, y: number) {
-    if (x < 30 || y < 120 || x > WORLD.w - 30 || y > WORLD.h - 10) return true;
-    if (Math.hypot(x - MOCHI.x, (y - MOCHI.y) * 2) < 40 || Math.hypot(x - SORA.x, (y - SORA.y) * 2) < 40) return true;
-    if ([TETSU, YUZU, REN, HANA, KAITO, NAMI].some((npc) => Math.hypot(x - npc.x, (y - npc.y) * 2) < 40)) return true;
-    return BLOCKERS.some(([bx, by, bw, bh]) => x > bx && x < bx + bw && y > by && y < by + bh);
-  }
+  private blocked(x: number, y: number) { return isBlocked(x,y,this.npcSprites.map(n=>n.sprite)); }
 
   override update(_t: number, dms: number) {
     const dt = Math.min(dms / 1000, 0.05);
@@ -192,6 +177,20 @@ export class TownScene extends Phaser.Scene {
       if (k.S.isDown || k.DOWN.isDown || k.W.isDown || k.UP.isDown) iy = vertical;
     }
     const p = this.player, m = this.mover;
+    if(ix || iy) this.route=[];
+    const waypoint=this.route[0];
+    if(waypoint && !bus.paused) {
+      const dx=waypoint.x-p.x,dy=waypoint.y-p.y,distance=Math.hypot(dx,dy);
+      if(distance<9) this.route.shift();
+      else {ix=dx/distance*Math.min(1,distance/24);iy=dy/distance*Math.min(1,distance/24);}
+    }
+    // Gentle patrols yield to the player and each other; no floating bob animation.
+    for(const n of this.npcSprites) {
+      const nx=n.home.x+Math.sin(_t/4000+n.phase)*22,ny=n.home.y+Math.sin(_t/5000+n.phase)*12;
+      const others=[p,...this.npcSprites.filter(o=>o!==n).map(o=>o.sprite)];
+      if(!isBlocked(nx,ny,others)) n.sprite.setPosition(nx,ny).setDepth(ny);
+      n.shadow.setPosition(n.sprite.x,n.sprite.y-3).setDepth(n.sprite.y-1);
+    }
     if (m.x !== p.x || m.y !== p.y) { m.x = p.x; m.y = p.y; } // external teleports (dev/scripted) stay authoritative
     const speed = stepMover(m, ix, iy, !!k?.SHIFT.isDown, bus.paused, dt, (x, y) => this.blocked(x, y));
     p.setPosition(m.x, m.y).setFlipX(m.facing < 0);

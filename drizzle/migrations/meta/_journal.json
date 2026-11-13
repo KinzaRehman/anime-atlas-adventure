@@ -78,6 +78,13 @@
       "when": 1794579870100,
       "tag": "0010_tighten_public_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794585390837,
+      "tag": "0011_anime_installment_progress",
+      "breakpoints": true
     }
   ]
 }
