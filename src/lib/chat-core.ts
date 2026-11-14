@@ -36,9 +36,10 @@ export async function chatTurn(supabase: SupabaseClient, userId: string, charact
     reply = res.output.flatMap((o) => (o.type === "message" ? o.content : [])).map((c) => (c.type === "output_text" ? c.text : "")).join("");
     reply = cleanReply(reply);
   } catch (e) {
-    console.error("sendChat", e);
+    console.error("sendChat", e instanceof GatewayError ? JSON.stringify(e.toJSON()) : e);
     if (e instanceof GatewayError && e.httpStatus === 429) return { ok: false as const, error: "Lots of visitors right now. Please try again in a minute." };
     if (e instanceof GatewayError && e.httpStatus === 402) return { ok: false as const, error: "Chats are paused because AI credits ran out." };
+    if (e instanceof GatewayError && e.httpStatus === 403) return { ok: false as const, error: "Chats are paused because AI access is turned off for this app. Please check back later." };
     return { ok: false as const, error: "The reply didn't come through. Please try again." };
   }
   if (!reply) return { ok: false as const, error: "No reply this time. Please try again." };

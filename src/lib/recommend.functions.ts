@@ -25,9 +25,10 @@ export const recommendAnime = createServerFn({ method: "POST" })
       const recs = (json.recs ?? []).filter((r) => r?.title && r?.why).slice(0, 5).map((r) => ({ ...r, watch: Array.isArray(r.watch) ? r.watch.filter((w) => typeof w === "string").slice(0, 4) : [] }));
       return recs.length ? { recs } : { recs: [], error: "Mochi couldn't find a match. Try describing it differently." };
     } catch (e) {
-      console.error("recommendAnime", e);
+      console.error("recommendAnime", e instanceof GatewayError ? JSON.stringify(e.toJSON()) : e);
       if (e instanceof GatewayError && e.httpStatus === 429) return { recs: [], error: "Lots of readers right now. Please try again in a minute." };
       if (e instanceof GatewayError && e.httpStatus === 402) return { recs: [], error: "Recommendations are paused (AI credits ran out)." };
+      if (e instanceof GatewayError && e.httpStatus === 403) return { recs: [], error: "Recommendations are paused because AI access is turned off for this app." };
       return { recs: [], error: "Something went wrong fetching picks. Please try again." };
     }
   });
