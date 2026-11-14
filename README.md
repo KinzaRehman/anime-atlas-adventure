@@ -5,6 +5,7 @@ Build a playful, mobile-first anime fandom exploration app called **AnimeAtlas**
 
 **Live app**: https://anime-atlas-adventure.lovable.app
 
+![Anime Atlas](./AnimeAtlas.png)
 
 **Project type:** Interactive exploration game, character collection experience, and anime fandom community.
 
